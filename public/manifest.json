@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "Cookie Test",
+  "version": "1.0",
+  "description": "Cookie Test",
+  "content_scripts":[
+    {
+      "matches":["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "permissions": [
+    "storage",
+    "activeTab",
+    "cookies"
+  ],
+  "host_permissions": [
+    "*://*/*"
+  ],
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": {
+      "16": "/images/icon.jpg",
+      "48": "/images/icon.jpg",
+      "128": "/images/icon.jpg"
+    },
+    "default_title":"Cookie Test"
+  },
+  "icons": {
+    "16": "/images/icon.jpg",
+    "48": "/images/icon.jpg",
+    "128": "/images/icon.jpg"
+  }
+}

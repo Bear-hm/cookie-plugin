@@ -1,60 +1,87 @@
-import React, { useEffect, useState } from 'react';
-import Pop from './component/Pop';
-import { notification } from 'antd';
+import { useEffect, useState } from "react";
+import Pop from "./component/Pop";
+import { notification } from "antd";
 
-
-function App() {
-  const [currentUrl, setCurrentUrl] = useState<string>('');
+const App = () => {
+  const [currentUrl, setCurrentUrl] = useState<string>("");
 
   useEffect(() => {
-    // 检查是否在扩展环境中
     if (chrome?.tabs?.query) {
-      // 获取当前标签页URL
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        setCurrentUrl(tabs[0]?.url || '');
+        const url = tabs[0]?.url || "";
+        console.log('当前标签页 URL:', url); 
+        setCurrentUrl(url);
       });
     } else {
-      // 开发环境下使用模拟数据
-      setCurrentUrl('http://localhost:3000');
-      console.log('当前处于开发环境，Chrome API 不可用');
+      setCurrentUrl("http://localhost:3000");
+      console.log("当前处于开发环境，Chrome API 不可用");
     }
   }, []);
 
-  // Cookie 操作方法
+  const handleGetAllCookies = async () => {
+    try {
+      if (chrome?.cookies?.getAll) {
+        // Chrome 扩展环境
+        const domain = new URL(currentUrl).hostname;
+        const isLocalhost = domain === 'localhost' || domain === '127.0.0.1';
+        
+        const cookies = await chrome.cookies.getAll({ 
+          domain: isLocalhost ? 'localhost' : domain
+        });
+        
+        console.log('域名:', domain);
+        console.log('获取到的 cookies:', cookies);
+        return cookies;
+      } else {
+        // 开发环境：解析 document.cookie
+        const cookieString = document.cookie;
+        const cookies: chrome.cookies.Cookie[] = cookieString.split(';')
+          .map(cookie => {
+            const [name, value] = cookie.trim().split('=');
+            return {
+              name,
+              value: decodeURIComponent(value),
+              domain: 'localhost',
+              path: '/',
+              secure: false,
+              httpOnly: false,
+              sameSite: "no_restriction",
+              session: true,
+              hostOnly: true,
+              expirationDate: undefined
+            } as chrome.cookies.Cookie;
+          })
+          .filter(cookie => cookie.name); // 过滤掉空值
+  
+        console.log('开发环境获取到的 cookies:', cookies);
+        return cookies;
+      }
+    } catch (error) {
+      console.error('获取 cookie 失败:', error);
+      notification.error({ 
+        message: "获取失败", 
+        description: error.message 
+      });
+      return [];
+    }
+  };
+
   const handleSetCookie = async (name: string, value: string) => {
     try {
       if (chrome?.cookies?.set) {
         await chrome.cookies.set({
           url: currentUrl,
           name,
-          value
+          value,
         });
-        notification.success({ message: 'Cookie 设置成功' });
+        notification.success({ message: "Cookie 设置成功" });
       } else {
         // 开发环境下的模拟响应
-        console.log('设置 Cookie:', { name, value });
-        notification.success({ message: '开发环境：模拟设置 Cookie 成功' });
+        console.log("设置 Cookie:", { name, value });
+        notification.success({ message: "开发环境：模拟设置 Cookie 成功" });
       }
     } catch (error) {
-      notification.error({ message: '设置失败', description: error.message });
-    }
-  };
-
-  const handleGetCookie = async (name: string) => {
-    try {
-      if (chrome?.cookies?.get) {
-        const cookie = await chrome.cookies.get({
-          url: currentUrl,
-          name
-        });
-        return cookie?.value;
-      } else {
-        // 开发环境下的模拟响应
-        console.log('获取 Cookie:', name);
-        return '开发环境模拟值';
-      }
-    } catch (error) {
-      notification.error({ message: '获取失败', description: error.message });
+      notification.error({ message: "设置失败", description: error.message });
     }
   };
 
@@ -63,26 +90,28 @@ function App() {
       if (chrome?.cookies?.remove) {
         await chrome.cookies.remove({
           url: currentUrl,
-          name
+          name,
         });
-        notification.success({ message: 'Cookie 删除成功' });
+        notification.success({ message: "Cookie 删除成功" });
       } else {
         // 开发环境下的模拟响应
-        console.log('删除 Cookie:', name);
-        notification.success({ message: '开发环境：模拟删除 Cookie 成功' });
+        console.log("删除 Cookie:", name);
+        notification.success({ message: "开发环境：模拟删除 Cookie 成功" });
       }
     } catch (error) {
-      notification.error({ message: '删除失败', description: error.message });
+      notification.error({ message: "删除失败", description: error.message });
     }
   };
 
   return (
     <div className="container">
-      <Pop 
-        onSetCookie={handleSetCookie}
-        onGetCookie={handleGetCookie}
-        onDeleteCookie={handleDeleteCookie}
-      />
+      <div className="bg-gray-50">
+        <Pop
+          onSetCookie={handleSetCookie}
+          onGetAllCookies={handleGetAllCookies}
+          onDeleteCookie={handleDeleteCookie}
+        />
+      </div>
     </div>
   );
 }

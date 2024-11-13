@@ -4,14 +4,13 @@ import {
   Button,
   Space,
   notification,
-  Radio,
   Tooltip,
   Select,
   DatePicker,
 } from "antd";
-import { SaveOutlined } from "@ant-design/icons";
-import { getAllCookies, setCookie, deleteCookie } from "../index";
+import { SaveOutlined, DeleteFilled } from "@ant-design/icons";
 import dayjs from "dayjs";
+import Checkbox from "antd/es/checkbox/Checkbox";
 interface PopProps {
   onGetAllCookies: () => Promise<chrome.cookies.Cookie[]>;
   onSetCookie: (name: string, value: string) => Promise<void>;
@@ -28,8 +27,6 @@ const Pop: React.FC<PopProps> = ({
     useState<chrome.cookies.Cookie | null>(null);
   const [cookieName, setCookieName] = useState("");
   const [cookieValue, setCookieValue] = useState("");
-  const [searchText, setSearchText] = useState("");
-
   const loadCookies = useCallback(async () => {
     const allCookies = await onGetAllCookies();
     setCookies(allCookies);
@@ -52,7 +49,7 @@ const Pop: React.FC<PopProps> = ({
 
   const handleDeleteCookie = async (name: string) => {
     if (!name) {
-      notification.warning({ message: "请输入 Cookie 名称" });
+      notification.warning({ message: "Please enter the cookie name" });
       return;
     }
     await onDeleteCookie(name);
@@ -63,7 +60,7 @@ const Pop: React.FC<PopProps> = ({
     <div className="flex flex-col" style={{ width: "700px" }}>
       <span className="flex items-center">
         <h1>Safe Cookie Editor</h1>
-        <span className="text-sm text-gray-500 ml-2">V1.0.0</span>
+        <span className="text-sm text-gray-500 ml-2">V2.1.3</span>
       </span>
       <div className="flex">
         {/* Cookie 列表部分 */}
@@ -73,35 +70,35 @@ const Pop: React.FC<PopProps> = ({
         >
           {cookies.length > 0 ? (
             <div>
-              {cookies
-                .filter(
-                  (cookie) =>
-                    cookie.name
-                      .toLowerCase()
-                      .includes(searchText.toLowerCase()) ||
-                    cookie.value
-                      .toLowerCase()
-                      .includes(searchText.toLowerCase())
-                )
-                .map((cookie, index) => (
-                  <div
-                    key={index}
-                    className="flex justify-between items-center p-2 border-b cursor-pointer"
-                    onClick={() => {
-                      setEditingCookie(cookie);
-                      setCookieName(cookie.name);
-                      setCookieValue(cookie.value);
-                      setShowAddForm(true);
-                    }}
-                  >
-                    <span>{cookie.name}</span>
+              {cookies.map((cookie, index) => (
+                <div
+                  key={index}
+                  className="group flex justify-between items-center p-2 border-b cursor-pointer hover:bg-gray-200 relative"
+                  onClick={() => {
+                    setEditingCookie(cookie);
+                    setCookieName(cookie.name);
+                    setCookieValue(cookie.value);
+                    setShowAddForm(true);
+                  }}
+                >
+                  <span>{cookie.name}</span>
+                  {/* 删除按钮显示在hover时 */}
+                  <div className="absolute right-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                    <Button
+                      variant="solid"
+                      icon={<DeleteFilled />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteCookie(cookie.name);
+                      }}
+                    ></Button>
                   </div>
-                ))}
+                </div>
+              ))}
             </div>
           ) : (
             <div className="text-gray-500 text-center">
-              <p>没有找到任何 Cookie。</p>
-              <p>请添加新的 Cookie 或检查搜索条件。</p>
+              <p>No cookies were found.</p>
             </div>
           )}
         </div>
@@ -142,7 +139,7 @@ const Pop: React.FC<PopProps> = ({
                   <Input
                     disabled
                     value={editingCookie.domain}
-                    onChange={(e) => (editingCookie.domain = e.target.value)} // 直接修改域名
+                    onChange={(e) => (editingCookie.domain = e.target.value)}
                     placeholder="Cookie Domain"
                   />
                 </div>
@@ -162,32 +159,22 @@ const Pop: React.FC<PopProps> = ({
                         editingCookie.expirationDate = undefined;
                       }
                     }}
-                    placeholder="选择过期时间"
+                    placeholder="Select an expiration date"
                   />
                 </div>
                 <div className="flex items-center">
                   <label className="text-sm mr-2">HttpOnly</label>
-                  <Radio.Group
+                  <Checkbox
                     value={editingCookie.httpOnly ? "yes" : "no"}
                     onChange={(e) =>
                       (editingCookie.httpOnly = e.target.value === "yes")
                     }
-                  >
-                    <Radio value="yes">Yes</Radio>
-                    <Radio value="no">No</Radio>
-                  </Radio.Group>
-                </div>
-                <div className="flex items-center">
-                  <label className="text-sm mr-2">Secure</label>
-                  <Radio.Group
-                    value={editingCookie.secure ? "yes" : "no"}
-                    onChange={(e) =>
-                      (editingCookie.secure = e.target.value === "yes")
-                    }
-                  >
-                    <Radio value="yes">Yes</Radio>
-                    <Radio value="no">No</Radio>
-                  </Radio.Group>
+                  ></Checkbox>
+                  <label className="text-sm mr-2 ml-4">Secure</label>
+                  <Checkbox
+                    onChange={(e) => (editingCookie.secure = e.target.checked)}
+                    checked={editingCookie.secure}
+                  ></Checkbox>
                 </div>
                 <div className="flex items-center">
                   <label className="text-sm mr-2">Same&nbsp;Site</label>
@@ -210,21 +197,6 @@ const Pop: React.FC<PopProps> = ({
                     ]}
                   />
                 </div>
-                <div className="flex items-center">
-                  <label className="text-sm mr-2">Size</label>
-                  <Input
-                    value={editingCookie.size}
-                    disabled
-                    placeholder="Cookie size"
-                  />
-                  <label className="text-sm mr-2 ml-4">Priority</label>
-                  <Input
-                    value={editingCookie.priority} // 显示 Cookie 优先级
-                    onChange={(e) => (editingCookie.priority = e.target.value)} // 直接修改优先级
-                    placeholder="Cookie priority"
-                  />
-                </div>
-
                 <div className="flex justify-end space-x-2">
                   <Button
                     onClick={() => {
@@ -232,14 +204,14 @@ const Pop: React.FC<PopProps> = ({
                       setEditingCookie(null);
                     }}
                   >
-                    取消
+                    Cancel
                   </Button>
                   <Button
                     type="primary"
-                    icon={<SaveOutlined />}
+                    // icon={<SaveOutlined />}
                     onClick={handleSetCookie}
                   >
-                    保存
+                    Save
                   </Button>
                 </div>
               </Space>
@@ -250,7 +222,7 @@ const Pop: React.FC<PopProps> = ({
               style={{ maxHeight: "510px", overflowY: "auto" }}
             >
               <span className="text-gray-500">
-                请选择一个 Cookie 以查看详细信息
+                Please select a cookie to view details
               </span>
             </div>
           )}

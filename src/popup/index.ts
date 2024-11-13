@@ -1,6 +1,3 @@
-import { log } from "console";
-
-// src/popup/index.ts
 export const getAllCookies = async (
   url: string
 ): Promise<chrome.cookies.Cookie[]> => {

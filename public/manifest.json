@@ -21,15 +21,15 @@
   "action": {
     "default_popup": "index.html",
     "default_icon": {
-      "16": "/images/icon.jpg",
-      "48": "/images/icon.jpg",
-      "128": "/images/icon.jpg"
+      "16": "images/icon.png",
+      "48": "images/icon.png",
+      "128": "images/icon.png"
     },
     "default_title":"Cookie Test"
   },
   "icons": {
-    "16": "/images/icon.jpg",
-    "48": "/images/icon.jpg",
-    "128": "/images/icon.jpg"
+    "16": "images/icon.png",
+    "48": "images/icon.png",
+    "128": "images/icon.png"
   }
 }

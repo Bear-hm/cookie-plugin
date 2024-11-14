@@ -9,7 +9,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .catch((error) => {
         sendResponse({ success: false, error: error.message });
       });
-    return true; // 保持消息通道打开
+    return true; 
   }
 });
 

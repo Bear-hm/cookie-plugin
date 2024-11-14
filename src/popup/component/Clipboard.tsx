@@ -1,20 +1,20 @@
-import React from 'react';
+import React,{useState} from 'react';
 import { Input, Space, Button, notification } from 'antd';
 
-interface ClipboardImportProps {
+interface ClipboardProps {
   onCancel: () => void;
-  onImport: (cookies: chrome.cookies.Cookie[]) => void;
+  onImport: (cookies: chrome.cookies.Cookie[]) => Promise<void>;
 }
 
-const ClipboardImport: React.FC<ClipboardImportProps> = ({ onCancel, onImport }) => {
-  const [clipboardContent, setClipboardContent] = React.useState('');
+const Clipboard: React.FC<ClipboardProps> = ({ onCancel, onImport }) => {
+  const [clipboardContent, setClipboardContent] = useState('');
 
-  const handleImport = () => {
+  const handleImport = async () => {
     try {
-      const cookies = JSON.parse(clipboardContent);
-      onImport(cookies);
+      const cookies = JSON.parse(clipboardContent) as chrome.cookies.Cookie[];
+      await onImport(cookies);
       setClipboardContent('');
-    } catch (error: unknown) {
+    } catch (error) {
       notification.error({
         message: 'Import Error',
         description: 'Invalid JSON format'
@@ -35,12 +35,7 @@ const ClipboardImport: React.FC<ClipboardImportProps> = ({ onCancel, onImport })
           rows={10}
         />
         <div className="flex justify-end space-x-2">
-          <Button 
-            onClick={() => {
-              onCancel();
-              setClipboardContent('');
-            }}
-          >
+          <Button onClick={onCancel}>
             Cancel
           </Button>
           <Button 
@@ -54,5 +49,4 @@ const ClipboardImport: React.FC<ClipboardImportProps> = ({ onCancel, onImport })
     </div>
   );
 };
-
-export default ClipboardImport;
+export default Clipboard;

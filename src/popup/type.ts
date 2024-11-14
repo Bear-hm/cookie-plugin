@@ -6,5 +6,7 @@ export interface CookieDetails {
   expirationDate?: number;
   secure?: boolean;
   httpOnly?: boolean;
+  session?: boolean;
+  hostOnly?: boolean;
   sameSite?: "no_restriction" | "lax" | "strict" | undefined;
 }

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import {
   Input,
   Button,
@@ -14,6 +14,7 @@ import { DeleteFilled } from "@ant-design/icons";
 import dayjs from "dayjs";
 import Checkbox from "antd/es/checkbox/Checkbox";
 import { CookieDetails } from "../type";
+import Clipboard from "./Clipboard";
 
 interface PopProps {
   currentUrl: string;
@@ -23,23 +24,23 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
   const {
     cookies,
     handleGetAllCookies,
-    handleSetCookie,
     handleDeleteCookie,
     handleDeleteAllCookies,
     handleExportCookies,
     handleImportCookies,
+    handleUpdateCookie
   } = useCookies(currentUrl);
 
   const [editingCookie, setEditingCookie] =
     React.useState<CookieDetails | null>(null);
   const [cookieName, setCookieName] = React.useState("");
   const [cookieValue, setCookieValue] = React.useState("");
-  // 粘贴区域
   const [importMode, setImportMode] = React.useState<
     "none" | "clipboard" | "file"
   >("none");
-  const [clipboardContent, setClipboardContent] = React.useState("");
-  const onSaveCookie = async () => {
+
+
+  const onSaveCookie = useCallback(async () => {
     if (!editingCookie || !cookieName || !cookieValue) {
       notification.warning({
         message: "Please enter the cookie name and value",
@@ -47,7 +48,6 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
       return;
     }
 
-    // 构建完整的 cookie 对象
     const cookieDetails: CookieDetails = {
       name: cookieName,
       value: cookieValue,
@@ -56,11 +56,19 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
       expirationDate: editingCookie.expirationDate,
       httpOnly: editingCookie.httpOnly,
       secure: editingCookie.secure,
+      hostOnly: editingCookie.hostOnly,
+      session: editingCookie.session,
       sameSite: editingCookie.sameSite,
     };
-    await handleSetCookie(cookieDetails);
+    await handleUpdateCookie(cookieName, cookieDetails);
     await handleGetAllCookies();
-  };
+  }, [
+    editingCookie,
+    cookieName,
+    cookieValue,
+    handleGetAllCookies,
+    handleUpdateCookie
+  ]);
 
   useEffect(() => {
     handleGetAllCookies();
@@ -115,7 +123,15 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
           className="w-1/2 p-4"
           style={{ height: "400px", maxHeight: "400px" }}
         >
-          {editingCookie ? (
+          {importMode === "clipboard" ? (
+            <Clipboard
+              onCancel={() => setImportMode("none")}
+              onImport={async () => {
+                await handleImportCookies("clipboard");
+                setImportMode("none");
+              }}
+            />
+          ) : editingCookie ? (
             <div className="bg-white rounded-lg p-6 w-full max-w-md">
               <h2 className="text-sm text-gray-500 mb-2">
                 Click on the cookie on the left to edit it.
@@ -192,6 +208,28 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                   />
                 </div>
                 <div className="flex items-center">
+                  <label className="text-sm mr-2">HostOnly</label>
+                  <Checkbox
+                    checked={editingCookie.hostOnly}
+                    onChange={(e) => {
+                      setEditingCookie({
+                        ...editingCookie,
+                        hostOnly: e.target.checked,
+                      });
+                    }}
+                  />
+                  <label className="text-sm mr-2 ml-4">Session</label>
+                  <Checkbox
+                    checked={editingCookie.session}
+                    onChange={(e) => {
+                      setEditingCookie({
+                        ...editingCookie,
+                        session: e.target.checked,
+                      });
+                    }}
+                  />
+                </div>
+                <div className="flex items-center">
                   <label className="text-sm mr-2">Same&nbsp;Site</label>
                   <Select
                     placeholder="Select a SameSite"
@@ -248,9 +286,9 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
       {/* 批量操作 */}
       <div className="flex items-center justify-between mt-8">
         <Space>
-          <Tooltip title="Add cookie" overlayStyle={{ fontSize: "12px" }}>
-            <Button onClick={handleDeleteAllCookies}>Add</Button>
-          </Tooltip>
+          {/* <Tooltip title="Add cookie" overlayStyle={{ fontSize: "12px" }}>
+            <Button>Add</Button>
+          </Tooltip> */}
           <Tooltip
             title="Remove the all cookie"
             overlayStyle={{ fontSize: "12px" }}
@@ -267,7 +305,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                   {
                     key: "clipboard",
                     label: "Import from clipboard",
-                    onClick: () => handleImportCookies("clipboard"),
+                    onClick: () => setImportMode("clipboard")
                   },
                   {
                     key: "file",

@@ -8,6 +8,7 @@ import {
   copyText,
   importFromClipboard,
   importFromFile,
+  updateCookie
 } from "../index";
 import { CookieDetails } from "../type";
 import { Modal } from "antd";
@@ -31,6 +32,18 @@ const useCookies = (currentUrl: string) => {
     async (cookieDetails: CookieDetails) => {
       try {
         await setCookie(currentUrl, cookieDetails);
+        await handleGetAllCookies();
+      } catch (error) {
+        console.error("Failed to set cookie:", error);
+      }
+    },
+    [currentUrl, handleGetAllCookies]
+  );
+  
+  const handleUpdateCookie = useCallback(
+    async (oldName: string,cookieDetails: CookieDetails) => {
+      try {
+        await updateCookie(currentUrl, oldName, cookieDetails);
         await handleGetAllCookies();
       } catch (error) {
         console.error("Failed to set cookie:", error);
@@ -63,7 +76,6 @@ const useCookies = (currentUrl: string) => {
     });
   };
 
-  // 处理导出函数
   const handleExportCookies = useCallback(
     (type: BatchType = "clipboard") => {
       const cookiesJson = JSON.stringify(cookies, null, 2);
@@ -130,6 +142,7 @@ const useCookies = (currentUrl: string) => {
     handleDeleteAllCookies,
     handleExportCookies,
     handleImportCookies,
+    handleUpdateCookie
   };
 };
 

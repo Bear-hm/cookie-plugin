@@ -73,6 +73,40 @@ export const setCookie = async (
   });
 };
 
+// 更新 cookie 的函数
+export const updateCookie = async (
+  url: string,
+  oldName: string,
+  newDetails: CookieDetails
+): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    if (chrome?.cookies?.remove && chrome?.cookies?.set) {
+      // 先删除旧的 cookie
+      chrome.cookies.remove({ url, name: oldName }, (removeResult) => {
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError);
+          return;
+        }
+
+        // 设置新的 cookie
+        chrome.cookies.set({url, ...newDetails }, (setResult) => {
+          if (chrome.runtime.lastError) {
+            reject(chrome.runtime.lastError);
+          } else {
+            notification.success({
+              message: "Cookie Updated",
+              description: `Successfully updated cookie: ${oldName} -> ${newDetails.name}`,
+            });
+            resolve();
+          }
+        });
+      });
+    } else {
+      reject(new Error("Chrome API 不可用"));
+    }
+  });
+};
+
 // 删除某个cookie
 export const deleteCookie = async (
   url: string,

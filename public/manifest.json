@@ -14,7 +14,9 @@
     "storage",
     "activeTab",
     "cookies",
-    "tabs"
+    "tabs",
+    "clipboardRead",
+    "clipboardWrite"
   ],
   "host_permissions": [
     "*://*/*"

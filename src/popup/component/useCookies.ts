@@ -39,7 +39,7 @@ const useCookies = (currentUrl: string) => {
     },
     [currentUrl, handleGetAllCookies]
   );
-  
+
   const handleUpdateCookie = useCallback(
     async (oldName: string,cookieDetails: CookieDetails) => {
       try {
@@ -99,7 +99,7 @@ const useCookies = (currentUrl: string) => {
     async (type: BatchType = "clipboard") => {
       try {
         let importedCookies: chrome.cookies.Cookie[];
-
+  
         switch (type) {
           case "clipboard":
             importedCookies = await importFromClipboard();
@@ -110,7 +110,8 @@ const useCookies = (currentUrl: string) => {
           default:
             return;
         }
-
+        console.log("handleImportCookies", importedCookies);
+        
         // 导入每个 cookie
         for (const cookie of importedCookies) {
           await handleSetCookie({
@@ -122,10 +123,11 @@ const useCookies = (currentUrl: string) => {
             httpOnly: cookie.httpOnly,
             sameSite: cookie.sameSite || "no_restriction",
             expirationDate: cookie.expirationDate,
+            storeId: cookie.storeId,
+            session: cookie.session,
           });
         }
-
-        // 刷新 cookie 列表
+  
         await handleGetAllCookies();
       } catch (error) {
         console.error("Failed to import cookies:", error);

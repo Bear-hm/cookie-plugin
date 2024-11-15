@@ -89,7 +89,10 @@ export const updateCookie = async (
         }
 
         // 设置新的 cookie
-        chrome.cookies.set({url, ...newDetails }, (setResult) => {
+        const { hostOnly, ...detailsWithoutHostOnly } = newDetails;
+        console.log("delete hostOnly", hostOnly);
+        
+        chrome.cookies.set({url, ...detailsWithoutHostOnly }, (setResult) => {
           if (chrome.runtime.lastError) {
             reject(chrome.runtime.lastError);
           } else {
@@ -102,6 +105,9 @@ export const updateCookie = async (
         });
       });
     } else {
+      notification.error({
+        message: "Cookie Updated Error",
+      });
       reject(new Error("Chrome API 不可用"));
     }
   });
@@ -111,7 +117,7 @@ export const updateCookie = async (
 export const deleteCookie = async (
   url: string,
   name: string
-): Promise<void> => {
+): Promise<boolean> => {
   return new Promise((resolve, reject) => {
     if (chrome?.cookies?.remove) {
       chrome.cookies.remove(
@@ -122,17 +128,19 @@ export const deleteCookie = async (
         (result) => {
           if (chrome.runtime.lastError) {
             reject(chrome.runtime.lastError);
+            resolve(false);
           } else {
             notification.success({
               message: "Cookie Deleted",
               description: `Successfully deleted cookie: ${name}`,
             });
-            resolve();
+            resolve(true);
           }
         }
       );
     } else {
       reject(new Error("Chrome API 不可用"));
+      resolve(false);
     }
   });
 };

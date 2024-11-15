@@ -1,26 +1,32 @@
 import React,{useState} from 'react';
 import { Input, Space, Button, notification } from 'antd';
-
 interface ClipboardProps {
   onCancel: () => void;
-  onImport: (cookies: chrome.cookies.Cookie[]) => Promise<void>;
+  onImport: (cookies) => Promise<void>;
 }
 
 const Clipboard: React.FC<ClipboardProps> = ({ onCancel, onImport }) => {
   const [clipboardContent, setClipboardContent] = useState('');
-
   const handleImport = async () => {
     try {
-      const cookies = JSON.parse(clipboardContent) as chrome.cookies.Cookie[];
-      await onImport(cookies);
+      const cookies = JSON.parse(clipboardContent);
+      console.log("导入的cookies格式", cookies);
+      if (!Array.isArray(cookies)) {
+        notification.error({
+          message: 'Import Error',
+          description: 'Invalid JSON format'
+        });
+      }
+      await onImport(cookies); 
       setClipboardContent('');
     } catch (error) {
       notification.error({
-        message: 'Import Error',
+        message: 'In Clipboard Import Error',
         description: 'Invalid JSON format'
       });
     }
   };
+
 
   return (
     <div className="bg-white rounded-lg p-6 w-full max-w-md">
@@ -31,7 +37,23 @@ const Clipboard: React.FC<ClipboardProps> = ({ onCancel, onImport }) => {
         <Input.TextArea
           value={clipboardContent}
           onChange={(e) => setClipboardContent(e.target.value)}
-          placeholder="Paste cookie JSON here..."
+          placeholder={`Enter JSON format like: [
+{
+  "domain": "localhost",
+  "expirationDate": 1764317095.490557,
+  "hostOnly": true,
+  "httpOnly": false,
+  "name": "_ga",
+  "path": "/",
+  ...
+},
+{
+  "domain": "example.com",
+  "expirationDate": 1764317095.490557,
+  "hostOnly": true,
+  ...
+}
+]`}
           rows={10}
         />
         <div className="flex justify-end space-x-2">

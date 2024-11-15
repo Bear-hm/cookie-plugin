@@ -28,9 +28,8 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
     handleDeleteAllCookies,
     handleExportCookies,
     handleImportCookies,
-    handleUpdateCookie
+    handleUpdateCookie,
   } = useCookies(currentUrl);
-
   const [editingCookie, setEditingCookie] =
     React.useState<CookieDetails | null>(null);
   const [cookieName, setCookieName] = React.useState("");
@@ -38,7 +37,6 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
   const [importMode, setImportMode] = React.useState<
     "none" | "clipboard" | "file"
   >("none");
-
 
   const onSaveCookie = useCallback(async () => {
     if (!editingCookie || !cookieName || !cookieValue) {
@@ -67,17 +65,18 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
     cookieName,
     cookieValue,
     handleGetAllCookies,
-    handleUpdateCookie
+    handleUpdateCookie,
   ]);
 
   useEffect(() => {
     handleGetAllCookies();
+
   }, [handleGetAllCookies]);
 
   return (
     <div className="flex flex-col" style={{ width: "700px" }}>
-      <span className="flex items-center">
-        <h1>Safe Cookie Editor</h1>
+      <span className="flex items-center ">
+        <h1 className="text-2xl font-bold">Safe Cookie Editor</h1>
         <span className="text-sm text-gray-500 ml-2">V2.1.3</span>
       </span>
       <div className="flex">
@@ -113,7 +112,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
               ))}
             </div>
           ) : (
-            <div className="text-gray-500 text-center">
+            <div className="text-gray-500 text-sm flex items-center justify-center h-full">
               <p>No cookies were found.</p>
             </div>
           )}
@@ -208,7 +207,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                   />
                 </div>
                 <div className="flex items-center">
-                  <label className="text-sm mr-2">HostOnly</label>
+                  {/* <label className="text-sm mr-2">HostOnly</label>
                   <Checkbox
                     checked={editingCookie.hostOnly}
                     onChange={(e) => {
@@ -217,8 +216,8 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                         hostOnly: e.target.checked,
                       });
                     }}
-                  />
-                  <label className="text-sm mr-2 ml-4">Session</label>
+                  /> */}
+                  <label className="text-sm mr-2">Session</label>
                   <Checkbox
                     checked={editingCookie.session}
                     onChange={(e) => {
@@ -276,7 +275,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
               className="flex items-center justify-center h-full bg-gray-100"
               style={{ maxHeight: "510px", overflowY: "auto" }}
             >
-              <span className="text-gray-500">
+              <span className="text-gray-500 text-sm">
                 Please select a cookie to view details
               </span>
             </div>
@@ -305,7 +304,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                   {
                     key: "clipboard",
                     label: "Import from clipboard",
-                    onClick: () => setImportMode("clipboard")
+                    onClick: () => setImportMode("clipboard"),
                   },
                   {
                     key: "file",

@@ -1,5 +1,4 @@
 import { notification } from "antd";
-import { CookieDetails } from "./type";
 export const getAllCookies = async (
   url: string
 ): Promise<chrome.cookies.Cookie[]> => {
@@ -50,15 +49,30 @@ export const getAllCookies = async (
   });
 };
 
+//增加Cookie
 export const setCookie = async (
   url: string,
-  setCookieDetails: CookieDetails
+  setCookieDetails: chrome.cookies.Cookie
 ): Promise<void> => {
   return new Promise((resolve, reject) => {
     if (chrome?.cookies?.set) {
-      chrome.cookies.set({ url, ...setCookieDetails }, (result) => {
+      // 去掉 hostOnly 属性
+      const { hostOnly,session, ...detailsWithoutHostOnly } = setCookieDetails;
+      console.log("set remove hostOly session", hostOnly,session);
+      
+      chrome.cookies.set({ url, ...detailsWithoutHostOnly }, (result) => {
         if (chrome.runtime.lastError) {
+          notification.error({
+            message: "Cookie Set Error",
+            description: chrome.runtime.lastError.message,
+          });
           reject(chrome.runtime.lastError);
+        } else if (!result) {
+          notification.error({
+            message: "Cookie Set Error",
+            description: "Failed to set cookie.",
+          });
+          reject(new Error("Failed to set cookie."));
         } else {
           notification.success({
             message: "Cookie Set",
@@ -68,6 +82,10 @@ export const setCookie = async (
         }
       });
     } else {
+      notification.error({
+        message: "Cookie Set Error",
+        description: "Chrome API 不可用",
+      });
       reject(new Error("Chrome API 不可用"));
     }
   });
@@ -77,7 +95,7 @@ export const setCookie = async (
 export const updateCookie = async (
   url: string,
   oldName: string,
-  newDetails: CookieDetails
+  newDetails: chrome.cookies.Cookie
 ): Promise<void> => {
   return new Promise((resolve, reject) => {
     if (chrome?.cookies?.remove && chrome?.cookies?.set) {
@@ -88,7 +106,7 @@ export const updateCookie = async (
           return;
         }
 
-        // 设置新的 cookie
+        // 去除hostOnly属性
         const { hostOnly, ...detailsWithoutHostOnly } = newDetails;
         console.log("delete hostOnly", hostOnly);
         
@@ -96,10 +114,10 @@ export const updateCookie = async (
           if (chrome.runtime.lastError) {
             reject(chrome.runtime.lastError);
           } else {
-            notification.success({
-              message: "Cookie Updated",
-              description: `Successfully updated cookie: ${oldName} -> ${newDetails.name}`,
-            });
+            // notification.success({
+            //   message: "Cookie Updated",
+            //   description: `Successfully updated cookie: ${oldName} -> ${newDetails.name}`,
+            // });
             resolve();
           }
         });
@@ -199,6 +217,7 @@ export const copyText = (text: string) => {
     document.body.removeChild(fakeText);
   }
 };
+
 //导出为json
 export const exportCookiesAsFile = (cookies: chrome.cookies.Cookie[]) => {
   const cookiesJson = JSON.stringify(cookies, null, 2);
@@ -216,6 +235,7 @@ export const exportCookiesAsFile = (cookies: chrome.cookies.Cookie[]) => {
     description: "Cookie information successfully exported to file",
   });
 };
+
 // 从剪贴板导入
 export const importFromClipboard = async (): Promise<chrome.cookies.Cookie[]> => {
   try {

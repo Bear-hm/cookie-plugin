@@ -2,7 +2,7 @@ import React,{useState} from 'react';
 import { Input, Space, Button, notification } from 'antd';
 interface ClipboardProps {
   onCancel: () => void;
-  onImport: (cookies) => Promise<void>;
+  onImport: (cookies:chrome.cookies.Cookie) => Promise<void>;
 }
 
 const Clipboard: React.FC<ClipboardProps> = ({ onCancel, onImport }) => {
@@ -10,7 +10,7 @@ const Clipboard: React.FC<ClipboardProps> = ({ onCancel, onImport }) => {
   const handleImport = async () => {
     try {
       const cookies = JSON.parse(clipboardContent);
-      console.log("导入的cookies格式", cookies);
+      // console.log("导入的cookies格式", cookies);
       if (!Array.isArray(cookies)) {
         notification.error({
           message: 'Import Error',

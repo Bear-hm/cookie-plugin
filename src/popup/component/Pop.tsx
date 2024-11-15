@@ -13,7 +13,6 @@ import useCookies from "./useCookies";
 import { DeleteFilled } from "@ant-design/icons";
 import dayjs from "dayjs";
 import Checkbox from "antd/es/checkbox/Checkbox";
-import { CookieDetails } from "../type";
 import Clipboard from "./Clipboard";
 
 interface PopProps {
@@ -31,12 +30,14 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
     handleUpdateCookie,
   } = useCookies(currentUrl);
   const [editingCookie, setEditingCookie] =
-    React.useState<CookieDetails | null>(null);
+    React.useState<chrome.cookies.Cookie | null>(null);
   const [cookieName, setCookieName] = React.useState("");
   const [cookieValue, setCookieValue] = React.useState("");
   const [importMode, setImportMode] = React.useState<
     "none" | "clipboard" | "file"
   >("none");
+  const [selectedCookieIndex, setSelectedCookieIndex] = React.useState<number | null>(null); // 新增状态
+
 
   const onSaveCookie = useCallback(async () => {
     if (!editingCookie || !cookieName || !cookieValue) {
@@ -46,7 +47,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
       return;
     }
 
-    const cookieDetails: CookieDetails = {
+    const cookieDetails: chrome.cookies.Cookie = {
       name: cookieName,
       value: cookieValue,
       path: editingCookie.path,
@@ -57,6 +58,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
       hostOnly: editingCookie.hostOnly,
       session: editingCookie.session,
       sameSite: editingCookie.sameSite,
+      storeId: editingCookie.storeId
     };
     await handleUpdateCookie(cookieName, cookieDetails);
     await handleGetAllCookies();
@@ -90,11 +92,12 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
               {cookies.map((cookie, index) => (
                 <div
                   key={index}
-                  className="group flex justify-between items-center p-2 border-b cursor-pointer hover:bg-gray-200 relative"
+                  className={`group flex justify-between items-center p-2 border-b cursor-pointer hover:bg-gray-200 relative ${selectedCookieIndex === index ? 'bg-gray-300' : ''}`}
                   onClick={() => {
-                    setEditingCookie(cookie as CookieDetails);
+                    setEditingCookie(cookie as chrome.cookies.Cookie);
                     setCookieName(cookie.name);
                     setCookieValue(cookie.value);
+                    setSelectedCookieIndex(index);
                   }}
                 >
                   <span>{cookie.name}</span>
@@ -260,6 +263,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                   <Button
                     onClick={() => {
                       setEditingCookie(null);
+                      setSelectedCookieIndex(null); 
                     }}
                   >
                     Cancel

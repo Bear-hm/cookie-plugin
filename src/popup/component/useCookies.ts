@@ -10,7 +10,6 @@ import {
   importFromFile,
   updateCookie
 } from "../index";
-import { CookieDetails } from "../type";
 import { Modal } from "antd";
 type BatchType = "clipboard" | "file";
 const useCookies = (currentUrl: string) => {
@@ -29,33 +28,30 @@ const useCookies = (currentUrl: string) => {
   }, [currentUrl]);
 
   const handleSetCookie = useCallback(
-    async (cookieDetails: CookieDetails) => {
+    async (cookieDetails: chrome.cookies.Cookie) => {
       try {
         await setCookie(currentUrl, cookieDetails);
-        await handleGetAllCookies();
       } catch (error) {
         console.error("Failed to set cookie:", error);
       }
     },
-    [currentUrl, handleGetAllCookies]
+    [currentUrl]
   );
 
   const handleUpdateCookie = useCallback(
-    async (oldName: string,cookieDetails: CookieDetails) => {
+    async (oldName: string,cookieDetails: chrome.cookies.Cookie) => {
       try {
         await updateCookie(currentUrl, oldName, cookieDetails);
-        await handleGetAllCookies();
       } catch (error) {
         console.error("Failed to set cookie:", error);
       }
     },
-    [currentUrl, handleGetAllCookies]
+    [currentUrl]
   );
 
   const handleDeleteCookie = async (name: string) => {
     try {
       await deleteCookie(currentUrl, name);
-      await handleGetAllCookies();
     } catch (error) {
       console.error("Failed to delete cookie:", error);
     }
@@ -68,7 +64,6 @@ const useCookies = (currentUrl: string) => {
       onOk: async () => {
         try {
           await deleteAllCookies(currentUrl);
-          await handleGetAllCookies();
         } catch (error) {
           console.error("Failed to delete all cookies:", error);
         }
@@ -114,26 +109,33 @@ const useCookies = (currentUrl: string) => {
         
         // 导入每个 cookie
         for (const cookie of importedCookies) {
-          await handleSetCookie({
+          const cookieDetails = {
             name: cookie.name,
             value: cookie.value,
-            domain: cookie.domain,
-            path: cookie.path,
-            secure: cookie.secure,
-            httpOnly: cookie.httpOnly,
-            sameSite: cookie.sameSite || "no_restriction",
-            expirationDate: cookie.expirationDate,
-            storeId: cookie.storeId,
-            session: cookie.session,
+          };
+          const optionalProperties: (keyof chrome.cookies.Cookie)[] = [
+            "path",
+            "domain",
+            "expirationDate",
+            "httpOnly",
+            "secure",
+            "hostOnly",
+            "sameSite",
+            "session",
+          ];
+          optionalProperties.forEach((prop) => {
+            if (cookie[prop] !== undefined) {
+              (cookieDetails)[prop] = cookie[prop];
+            }
           });
+          await handleSetCookie(cookieDetails);
         }
   
-        await handleGetAllCookies();
       } catch (error) {
         console.error("Failed to import cookies:", error);
       }
     },
-    [handleGetAllCookies, handleSetCookie]
+    [ handleSetCookie]
   );
 
   return {

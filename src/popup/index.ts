@@ -62,30 +62,14 @@ export const setCookie = async (
       
       chrome.cookies.set({ url, ...detailsWithoutHostOnly }, (result) => {
         if (chrome.runtime.lastError) {
-          notification.error({
-            message: "Cookie Set Error",
-            description: chrome.runtime.lastError.message,
-          });
           reject(chrome.runtime.lastError);
         } else if (!result) {
-          notification.error({
-            message: "Cookie Set Error",
-            description: "Failed to set cookie.",
-          });
           reject(new Error("Failed to set cookie."));
         } else {
-          notification.success({
-            message: "Cookie Set",
-            description: `Successfully set cookie: ${setCookieDetails.name}`,
-          });
           resolve();
         }
       });
     } else {
-      notification.error({
-        message: "Cookie Set Error",
-        description: "Chrome API 不可用",
-      });
       reject(new Error("Chrome API 不可用"));
     }
   });
@@ -107,25 +91,20 @@ export const updateCookie = async (
         }
 
         // 去除hostOnly属性
-        const { hostOnly, ...detailsWithoutHostOnly } = newDetails;
+        const { session, hostOnly, ...detailsWithoutRestrictedProps } = newDetails;
         console.log("delete hostOnly", hostOnly);
+        console.log("delete session", session);
         
-        chrome.cookies.set({url, ...detailsWithoutHostOnly }, (setResult) => {
+        chrome.cookies.set({url, ...detailsWithoutRestrictedProps }, (setResult) => {
           if (chrome.runtime.lastError) {
             reject(chrome.runtime.lastError);
           } else {
-            // notification.success({
-            //   message: "Cookie Updated",
-            //   description: `Successfully updated cookie: ${oldName} -> ${newDetails.name}`,
-            // });
             resolve();
           }
         });
       });
     } else {
-      notification.error({
-        message: "Cookie Updated Error",
-      });
+     
       reject(new Error("Chrome API 不可用"));
     }
   });
@@ -148,10 +127,7 @@ export const deleteCookie = async (
             reject(chrome.runtime.lastError);
             resolve(false);
           } else {
-            notification.success({
-              message: "Cookie Deleted",
-              description: `Successfully deleted cookie: ${name}`,
-            });
+
             resolve(true);
           }
         }
@@ -177,16 +153,14 @@ export const deleteAllCookies = async (url: string): Promise<void> => {
       .catch((error) => {
         failureCount++;
         console.log('delete cookie',error);
-        
       });
   });
 
   await Promise.all(deletePromises);
-
-  // 统计结果通知
   notification.info({
     message: "Delete All Cookies Summary",
-    description: `Successfully deleted ${successCount} cookies. Failed to delete ${failureCount} cookies.`,
+    description: `Successfully deleted ${successCount} cookies.\n Failed to delete ${failureCount} cookies.`,
+    style: { whiteSpace: 'pre-line' }
   });
 };
 

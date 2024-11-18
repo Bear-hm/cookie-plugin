@@ -8,9 +8,9 @@ import {
   copyText,
   importFromClipboard,
   importFromFile,
-  updateCookie
+  updateCookie,
 } from "../index";
-import { Modal } from "antd";
+import { Modal, notification } from "antd";
 type BatchType = "clipboard" | "file";
 const useCookies = (currentUrl: string) => {
   const [cookies, setCookies] = useState<chrome.cookies.Cookie[]>([]);
@@ -31,19 +31,33 @@ const useCookies = (currentUrl: string) => {
     async (cookieDetails: chrome.cookies.Cookie) => {
       try {
         await setCookie(currentUrl, cookieDetails);
+        notification.success({
+          message: "Cookie Set",
+          description: `Successfully set cookie:`,
+        });
       } catch (error) {
-        console.error("Failed to set cookie:", error);
+        notification.error({
+          message: "Cookie Set Error",
+          description: `Failed to set cookie: ${error}`,
+        });
       }
     },
     [currentUrl]
   );
 
   const handleUpdateCookie = useCallback(
-    async (oldName: string,cookieDetails: chrome.cookies.Cookie) => {
+    async (oldName: string, cookieDetails: chrome.cookies.Cookie) => {
       try {
         await updateCookie(currentUrl, oldName, cookieDetails);
+        notification.success({
+          message: "Cookie Updated",
+          description: `Successfully updated cookie: ${cookieDetails.name}`,
+        });
       } catch (error) {
-        console.error("Failed to set cookie:", error);
+        notification.error({
+          message: "Update Failed",
+          description: `Failed to update cookie: ${error}`,
+        });
       }
     },
     [currentUrl]
@@ -51,9 +65,18 @@ const useCookies = (currentUrl: string) => {
 
   const handleDeleteCookie = async (name: string) => {
     try {
-      await deleteCookie(currentUrl, name);
+      const res = await deleteCookie(currentUrl, name);
+      if (res) {
+        notification.success({
+          message: "Cookie Deleted",
+          description: `Successfully deleted cookie: ${name}`,
+        });
+      }
     } catch (error) {
-      console.error("Failed to delete cookie:", error);
+      notification.error({
+        message: "Delete Failed",
+        description: `Failed to delete cookie: ${error}`,
+      });
     }
   };
 
@@ -64,9 +87,15 @@ const useCookies = (currentUrl: string) => {
       onOk: async () => {
         try {
           await deleteAllCookies(currentUrl);
+          // notification.success({
+          //   message: "All Cookies Deleted",
+          //   description: "Successfully deleted all cookies.",
+          // });
         } catch (error) {
-          console.error("Failed to delete all cookies:", error);
-        }
+          notification.error({
+            message: "Delete Failed",
+            description: `Failed to delete all cookies: ${error}`,
+          });}
       },
     });
   };
@@ -94,7 +123,6 @@ const useCookies = (currentUrl: string) => {
     async (type: BatchType = "clipboard") => {
       try {
         let importedCookies: chrome.cookies.Cookie[];
-  
         switch (type) {
           case "clipboard":
             importedCookies = await importFromClipboard();
@@ -106,7 +134,6 @@ const useCookies = (currentUrl: string) => {
             return;
         }
         console.log("handleImportCookies", importedCookies);
-        
         // 导入每个 cookie
         for (const cookie of importedCookies) {
           const cookieDetails = {
@@ -125,17 +152,16 @@ const useCookies = (currentUrl: string) => {
           ];
           optionalProperties.forEach((prop) => {
             if (cookie[prop] !== undefined) {
-              (cookieDetails)[prop] = cookie[prop];
+              cookieDetails[prop] = cookie[prop];
             }
           });
           await handleSetCookie(cookieDetails);
         }
-  
       } catch (error) {
         console.error("Failed to import cookies:", error);
       }
     },
-    [ handleSetCookie]
+    [handleSetCookie]
   );
 
   return {
@@ -146,7 +172,7 @@ const useCookies = (currentUrl: string) => {
     handleDeleteAllCookies,
     handleExportCookies,
     handleImportCookies,
-    handleUpdateCookie
+    handleUpdateCookie,
   };
 };
 

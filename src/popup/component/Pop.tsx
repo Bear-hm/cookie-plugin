@@ -31,8 +31,6 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
   } = useCookies(currentUrl);
   const [editingCookie, setEditingCookie] =
     React.useState<chrome.cookies.Cookie | null>(null);
-  const [cookieName, setCookieName] = React.useState("");
-  const [cookieValue, setCookieValue] = React.useState("");
   const [importMode, setImportMode] = React.useState<
     "none" | "clipboard" | "file"
   >("none");
@@ -40,7 +38,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
 
 
   const onSaveCookie = useCallback(async () => {
-    if (!editingCookie || !cookieName || !cookieValue) {
+    if (!editingCookie || !editingCookie.name || !editingCookie.value) {
       notification.warning({
         message: "Please enter the cookie name and value",
       });
@@ -48,8 +46,8 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
     }
 
     const cookieDetails: chrome.cookies.Cookie = {
-      name: cookieName,
-      value: cookieValue,
+      name: editingCookie.name,
+      value: editingCookie.value,
       path: editingCookie.path,
       domain: editingCookie.domain,
       expirationDate: editingCookie.expirationDate,
@@ -60,12 +58,10 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
       sameSite: editingCookie.sameSite,
       storeId: editingCookie.storeId
     };
-    await handleUpdateCookie(cookieName, cookieDetails);
+    await handleUpdateCookie(editingCookie.name, cookieDetails);
     await handleGetAllCookies();
   }, [
     editingCookie,
-    cookieName,
-    cookieValue,
     handleGetAllCookies,
     handleUpdateCookie,
   ]);
@@ -95,8 +91,6 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                   className={`group flex justify-between items-center p-2 border-b cursor-pointer hover:bg-gray-200 relative ${selectedCookieIndex === index ? 'bg-gray-300' : ''}`}
                   onClick={() => {
                     setEditingCookie(cookie as chrome.cookies.Cookie);
-                    setCookieName(cookie.name);
-                    setCookieValue(cookie.value);
                     setSelectedCookieIndex(index);
                   }}
                 >
@@ -142,28 +136,49 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                 <div className="flex item-center">
                   <label className="text-sm mr-2">Name</label>
                   <Input
-                    value={cookieName}
-                    onChange={(e) => setCookieName(e.target.value)}
+                    value={editingCookie.name}
+                    onChange={(e) => {
+                      setEditingCookie({
+                        ...editingCookie,
+                        name: e.target.value,
+                      });
+                    }}
                     placeholder="Cookie Name"
                   />
                 </div>
                 <div className="flex items-center">
                   <label className="text-sm mr-2">Value</label>
                   <Input
-                    value={cookieValue}
-                    onChange={(e) => setCookieValue(e.target.value)}
+                    value={editingCookie.value}
+                    onChange={(e) => {
+                      setEditingCookie({
+                        ...editingCookie,
+                        value: e.target.value,
+                      });
+                    }}
                     placeholder="Cookie Value"
                   />
                 </div>
                 <div className="flex items-center">
                   <label className="text-sm mr-2">Path</label>
-                  <Input value={editingCookie.path} placeholder="Cookie Path" />
+                  <Input value={editingCookie.path} placeholder="Cookie Path"  onChange={(e) => {
+            setEditingCookie({
+              ...editingCookie,
+              path: e.target.value,
+            });
+          }}/>
                 </div>
                 <div className="flex items-center">
                   <label className="text-sm mr-2">Domain</label>
                   <Input
                     disabled
                     value={editingCookie.domain}
+                    onChange={(e) => {
+                      setEditingCookie({
+                        ...editingCookie,
+                        domain: e.target.value,
+                      });
+                    }}
                     placeholder="Cookie Domain"
                   />
                 </div>

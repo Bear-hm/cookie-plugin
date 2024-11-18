@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Cookie Test",
+  "name": "Safe Cookie Editor",
   "version": "2.1.3",
-  "description": "Cookie Test",
+  "description": "Safe Cookie Editor",
   "content_scripts":[
     {
       "matches":["<all_urls>"],

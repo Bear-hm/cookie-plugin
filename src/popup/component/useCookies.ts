@@ -27,45 +27,45 @@ const useCookies = (currentUrl: string) => {
     }
   }, [currentUrl]);
 
-  const handleSetCookie = useCallback(
-    async (cookieDetails: chrome.cookies.Cookie) => {
-      try {
-        await setCookie(currentUrl, cookieDetails);
-        notification.success({
-          message: "Cookie Set",
-          description: `Successfully set cookie:`,
-        });
-      } catch (error) {
-        notification.error({
-          message: "Cookie Set Error",
-          description: `Failed to set cookie: ${error}`,
-        });
-      }
-    },
-    [currentUrl]
-  );
+  const handleSetCookie = async (cookieDetails: chrome.cookies.Cookie) => {
+    try {
+      await setCookie(currentUrl, cookieDetails);
+      await handleGetAllCookies();
+      notification.success({
+        message: "Cookie Set",
+        description: `Successfully set cookie:`,
+      });
+    } catch (error) {
+      notification.error({
+        message: "Cookie Set Error",
+        description: `Failed to set cookie: ${error}`,
+      });
+    }
+  };
 
-  const handleUpdateCookie = useCallback(
-    async (oldName: string, cookieDetails: chrome.cookies.Cookie) => {
-      try {
-        await updateCookie(currentUrl, oldName, cookieDetails);
-        notification.success({
-          message: "Cookie Updated",
-          description: `Successfully updated cookie: ${cookieDetails.name}`,
-        });
-      } catch (error) {
-        notification.error({
-          message: "Update Failed",
-          description: `Failed to update cookie: ${error}`,
-        });
-      }
-    },
-    [currentUrl]
-  );
+  const handleUpdateCookie = async (
+    oldName: string,
+    cookieDetails: chrome.cookies.Cookie
+  ) => {
+    try {
+      await updateCookie(currentUrl, oldName, cookieDetails);
+      await handleGetAllCookies();
+      notification.success({
+        message: "Cookie Updated",
+        description: `Successfully updated cookie: ${cookieDetails.name}`,
+      });
+    } catch (error) {
+      notification.error({
+        message: "Update Failed",
+        description: `Failed to update cookie: ${error}`,
+      });
+    }
+  };
 
   const handleDeleteCookie = async (name: string) => {
     try {
       const res = await deleteCookie(currentUrl, name);
+      await handleGetAllCookies();
       if (res) {
         notification.success({
           message: "Cookie Deleted",
@@ -87,82 +87,75 @@ const useCookies = (currentUrl: string) => {
       onOk: async () => {
         try {
           await deleteAllCookies(currentUrl);
-          // notification.success({
-          //   message: "All Cookies Deleted",
-          //   description: "Successfully deleted all cookies.",
-          // });
+          await handleGetAllCookies();
         } catch (error) {
           notification.error({
             message: "Delete Failed",
             description: `Failed to delete all cookies: ${error}`,
-          });}
+          });
+        }
       },
     });
   };
 
-  const handleExportCookies = useCallback(
-    (type: BatchType = "clipboard") => {
-      const cookiesJson = JSON.stringify(cookies, null, 2);
-
+  const handleExportCookies = (type: BatchType = "clipboard") => {
+    const cookiesJson = JSON.stringify(cookies, null, 2);
+    switch (type) {
+      case "clipboard":
+        copyText(cookiesJson);
+        break;
+      case "file":
+        exportCookiesAsFile(cookies);
+        handleGetAllCookies();
+        break;
+      default:
+        copyText(cookiesJson);
+        break;
+    }
+  };
+  const handleImportCookies = async (type: BatchType = "clipboard") => {
+    try {
+      let importedCookies: chrome.cookies.Cookie[];
       switch (type) {
         case "clipboard":
-          copyText(cookiesJson);
+          importedCookies = await importFromClipboard();
           break;
         case "file":
-          exportCookiesAsFile(cookies);
+          importedCookies = await importFromFile();
           break;
         default:
-          copyText(cookiesJson);
-          break;
+          return;
       }
-    },
-    [cookies]
-  );
-
-  const handleImportCookies = useCallback(
-    async (type: BatchType = "clipboard") => {
-      try {
-        let importedCookies: chrome.cookies.Cookie[];
-        switch (type) {
-          case "clipboard":
-            importedCookies = await importFromClipboard();
-            break;
-          case "file":
-            importedCookies = await importFromFile();
-            break;
-          default:
-            return;
-        }
-        console.log("handleImportCookies", importedCookies);
-        // 导入每个 cookie
-        for (const cookie of importedCookies) {
-          const cookieDetails = {
-            name: cookie.name,
-            value: cookie.value,
-          };
-          const optionalProperties: (keyof chrome.cookies.Cookie)[] = [
-            "path",
-            "domain",
-            "expirationDate",
-            "httpOnly",
-            "secure",
-            "hostOnly",
-            "sameSite",
-            "session",
-          ];
-          optionalProperties.forEach((prop) => {
-            if (cookie[prop] !== undefined) {
-              cookieDetails[prop] = cookie[prop];
-            }
-          });
-          await handleSetCookie(cookieDetails);
-        }
-      } catch (error) {
-        console.error("Failed to import cookies:", error);
+      console.log("handleImportCookies", importedCookies);
+      // 导入每个 cookie
+      for (const cookie of importedCookies) {
+        const cookieDetails = {
+          name: cookie.name,
+          value: cookie.value,
+        };
+        const optionalProperties: (keyof chrome.cookies.Cookie)[] = [
+          "path",
+          "domain",
+          "expirationDate",
+          "httpOnly",
+          "secure",
+          "hostOnly",
+          "sameSite",
+          "session",
+        ];
+        optionalProperties.forEach((prop) => {
+          if (cookie[prop] !== undefined) {
+            cookieDetails[prop] = cookie[prop];
+          }
+        });
+        await handleSetCookie(cookieDetails);
+        await handleGetAllCookies();
       }
-    },
-    [handleSetCookie]
-  );
+      await handleGetAllCookies();
+    } catch (error) {
+      console.error("Failed to import cookies:", error);
+    }
+  };
 
   return {
     cookies,

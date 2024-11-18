@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Pop from "./component/Pop";
+import { ConfigProvider } from "antd";
 const App = () => {
   const [currentUrl, setCurrentUrl] = useState<string>("");
   console.log("current Url ",currentUrl);
@@ -17,7 +18,18 @@ const App = () => {
   }, []);
 
   return (
+    <ConfigProvider
+    theme={{
+      token: {
+        colorPrimary:'#381A1A',
+        colorPrimaryActive:'#FAF3E9',
+        colorPrimaryBgHover: '#FAF3E9',
+        controlOutline: '#381A1A'
+      }
+    }}
+  >
     <Pop currentUrl={currentUrl}/>
+    </ConfigProvider>
   );
 };
 

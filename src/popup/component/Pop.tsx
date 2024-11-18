@@ -14,12 +14,14 @@ import { DeleteFilled } from "@ant-design/icons";
 import dayjs from "dayjs";
 import Checkbox from "antd/es/checkbox/Checkbox";
 import Clipboard from "./Clipboard";
+import bgImg from "../../assets/f-bg.png";
 
 interface PopProps {
   currentUrl: string;
 }
 
 const Pop: React.FC<PopProps> = ({ currentUrl }) => {
+  // 自定义
   const {
     cookies,
     handleGetAllCookies,
@@ -29,14 +31,18 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
     handleImportCookies,
     handleUpdateCookie,
   } = useCookies(currentUrl);
+
   const [editingCookie, setEditingCookie] =
     React.useState<chrome.cookies.Cookie | null>(null);
   const [importMode, setImportMode] = React.useState<
     "none" | "clipboard" | "file"
   >("none");
-  const [selectedCookieIndex, setSelectedCookieIndex] = React.useState<number | null>(null); // 新增状态
+  // cookie选中样式
+  const [selectedCookieIndex, setSelectedCookieIndex] = React.useState<
+    number | null
+  >(null);
 
-
+  //保存更改
   const onSaveCookie = useCallback(async () => {
     if (!editingCookie || !editingCookie.name || !editingCookie.value) {
       notification.warning({
@@ -44,7 +50,6 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
       });
       return;
     }
-
     const cookieDetails: chrome.cookies.Cookie = {
       name: editingCookie.name,
       value: editingCookie.value,
@@ -56,39 +61,59 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
       hostOnly: editingCookie.hostOnly,
       session: editingCookie.session,
       sameSite: editingCookie.sameSite,
-      storeId: editingCookie.storeId
+      storeId: editingCookie.storeId,
     };
-    await handleUpdateCookie(editingCookie.name, cookieDetails);
-    await handleGetAllCookies();
-  }, [
-    editingCookie,
-    handleGetAllCookies,
-    handleUpdateCookie,
-  ]);
+    try {
+      await handleUpdateCookie(editingCookie.name, cookieDetails);
+      setEditingCookie(null);
+      setSelectedCookieIndex(null);
+    } catch (error) {
+      console.error("Failed to update cookie:", error);
+    }
+  }, [editingCookie, handleUpdateCookie]);
 
   useEffect(() => {
     handleGetAllCookies();
-
-  }, [handleGetAllCookies]);
-
+  }, [currentUrl, handleGetAllCookies]);
   return (
-    <div className="flex flex-col" style={{ width: "700px" }}>
-      <span className="flex items-center ">
+    <div
+      className="flex flex-col py-4"
+      style={{
+        width: "800px",
+        height: "650px",
+        backgroundColor: "#FAF3E9",
+        color: "#381A1A",
+        paddingLeft: "18px",
+        paddingRight: "0",
+      }}
+    >
+      <span className="flex items-center mb-3">
         <h1 className="text-2xl font-bold">Safe Cookie Editor</h1>
         <span className="text-sm text-gray-500 ml-2">V2.1.3</span>
       </span>
-      <div className="flex">
+      <div className="flex " style={{ backgroundColor: "#FAF3E9" }}>
         {/* Cookie 列表部分 */}
         <div
-          className="w-1/2 p-4"
-          style={{ height: "400px", maxHeight: "400px", overflowY: "auto" }}
+          className="w-1/2 p-4 bg-white rounded-lg"
+          style={{ overflowY: "auto", height: "530px" }}
         >
           {cookies.length > 0 ? (
             <div>
               {cookies.map((cookie, index) => (
                 <div
                   key={index}
-                  className={`group flex justify-between items-center p-2 border-b cursor-pointer hover:bg-gray-200 relative ${selectedCookieIndex === index ? 'bg-gray-300' : ''}`}
+                  className={`group flex justify-between items-center p-2 border-b cursor-pointer relative `}
+                  style={{
+                    backgroundColor:
+                      selectedCookieIndex === index ? "#FAF3E9" : "",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#FAF3E9";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor =
+                      selectedCookieIndex === index ? "#FAF3E9" : "";
+                  }}
                   onClick={() => {
                     setEditingCookie(cookie as chrome.cookies.Cookie);
                     setSelectedCookieIndex(index);
@@ -109,15 +134,18 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
               ))}
             </div>
           ) : (
-            <div className="text-gray-500 text-sm flex items-center justify-center h-full">
-              <p>No cookies were found.</p>
+            <div
+              className="flex items-center justify-center h-full"
+              style={{ fontSize: "24px" , fontWeight: 700, padding: "8px"}}
+            >
+              <p>There are no cookies for the current page. </p>
             </div>
           )}
         </div>
         {/* 表单内容部分 */}
         <div
-          className="w-1/2 p-4"
-          style={{ height: "400px", maxHeight: "400px" }}
+          className="w-1/2"
+          style={{ backgroundColor: "#FAF3E9", height: "530px" }}
         >
           {importMode === "clipboard" ? (
             <Clipboard
@@ -128,12 +156,9 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
               }}
             />
           ) : editingCookie ? (
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
-              <h2 className="text-sm text-gray-500 mb-2">
-                Click on the cookie on the left to edit it.
-              </h2>
-              <Space direction="vertical" className="w-full">
-                <div className="flex item-center">
+            <div className="rounded-lg w-full max-w-md p-4">
+              <Space direction="vertical" className="w-full" size="large">
+                <div className="">
                   <label className="text-sm mr-2">Name</label>
                   <Input
                     value={editingCookie.name}
@@ -146,7 +171,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                     placeholder="Cookie Name"
                   />
                 </div>
-                <div className="flex items-center">
+                <div className="">
                   <label className="text-sm mr-2">Value</label>
                   <Input
                     value={editingCookie.value}
@@ -159,16 +184,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                     placeholder="Cookie Value"
                   />
                 </div>
-                <div className="flex items-center">
-                  <label className="text-sm mr-2">Path</label>
-                  <Input value={editingCookie.path} placeholder="Cookie Path"  onChange={(e) => {
-            setEditingCookie({
-              ...editingCookie,
-              path: e.target.value,
-            });
-          }}/>
-                </div>
-                <div className="flex items-center">
+                <div className="">
                   <label className="text-sm mr-2">Domain</label>
                   <Input
                     disabled
@@ -182,12 +198,26 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                     placeholder="Cookie Domain"
                   />
                 </div>
-                <div className="flex items-center">
+                <div className="">
+                  <label className="text-sm mr-2">Path</label>
+                  <Input
+                    value={editingCookie.path}
+                    placeholder="Cookie Path"
+                    onChange={(e) => {
+                      setEditingCookie({
+                        ...editingCookie,
+                        path: e.target.value,
+                      });
+                    }}
+                  />
+                </div>
+                <div className="">
                   <label className="text-sm mr-2">Expires</label>
                   <DatePicker
                     size={"small"}
                     placement={"bottomRight"}
                     showTime
+                    style={{ zIndex: 9999 }}
                     value={
                       editingCookie.expirationDate
                         ? dayjs(editingCookie.expirationDate * 1000)
@@ -202,51 +232,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                     placeholder="Select an expiration date"
                   />
                 </div>
-                <div className="flex items-center">
-                  <label className="text-sm mr-2">HttpOnly</label>
-                  <Checkbox
-                    checked={editingCookie.httpOnly}
-                    onChange={(e) => {
-                      setEditingCookie({
-                        ...editingCookie,
-                        httpOnly: e.target.checked,
-                      });
-                    }}
-                  />
-                  <label className="text-sm mr-2 ml-4">Secure</label>
-                  <Checkbox
-                    checked={editingCookie.secure}
-                    onChange={(e) => {
-                      setEditingCookie({
-                        ...editingCookie,
-                        secure: e.target.checked,
-                      });
-                    }}
-                  />
-                </div>
-                <div className="flex items-center">
-                  {/* <label className="text-sm mr-2">HostOnly</label>
-                  <Checkbox
-                    checked={editingCookie.hostOnly}
-                    onChange={(e) => {
-                      setEditingCookie({
-                        ...editingCookie,
-                        hostOnly: e.target.checked,
-                      });
-                    }}
-                  /> */}
-                  <label className="text-sm mr-2">Session</label>
-                  <Checkbox
-                    checked={editingCookie.session}
-                    onChange={(e) => {
-                      setEditingCookie({
-                        ...editingCookie,
-                        session: e.target.checked,
-                      });
-                    }}
-                  />
-                </div>
-                <div className="flex items-center">
+                <div className="">
                   <label className="text-sm mr-2">Same&nbsp;Site</label>
                   <Select
                     placeholder="Select a SameSite"
@@ -274,48 +260,116 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                     ]}
                   />
                 </div>
-                <div className="flex justify-end space-x-2">
+                <div className="">
+                  <label className="text-sm mr-2">HostOnly</label>
+                  <Checkbox
+                    checked={editingCookie.hostOnly}
+                    onChange={(e) => {
+                      setEditingCookie({
+                        ...editingCookie,
+                        hostOnly: e.target.checked,
+                      });
+                    }}
+                  />
+                  <label className="text-sm mr-2 ml-4">Session</label>
+                  <Checkbox
+                    checked={editingCookie.session}
+                    onChange={(e) => {
+                      setEditingCookie({
+                        ...editingCookie,
+                        session: e.target.checked,
+                      });
+                    }}
+                  />
+                </div>
+                <div className="">
+                  <label className="text-sm mr-2">HttpOnly</label>
+                  <Checkbox
+                    checked={editingCookie.httpOnly}
+                    onChange={(e) => {
+                      setEditingCookie({
+                        ...editingCookie,
+                        httpOnly: e.target.checked,
+                      });
+                    }}
+                  />
+                  <label className="text-sm mr-2 ml-4">Secure</label>
+                  <Checkbox
+                    checked={editingCookie.secure}
+                    onChange={(e) => {
+                      setEditingCookie({
+                        ...editingCookie,
+                        secure: e.target.checked,
+                      });
+                    }}
+                  />
+                </div>
+                <div
+                  className="flex justify-end space-x-2"
+                  style={{ marginTop: "15px" }}
+                >
                   <Button
                     onClick={() => {
                       setEditingCookie(null);
-                      setSelectedCookieIndex(null); 
+                      setSelectedCookieIndex(null);
                     }}
                   >
                     Cancel
                   </Button>
-                  <Button type="primary" onClick={onSaveCookie}>
-                    Save
+                  <Button
+                    style={{ backgroundColor: "#381A1A", color: "#fff" }}
+                    onClick={onSaveCookie}
+                  >
+                    Update
                   </Button>
                 </div>
               </Space>
             </div>
           ) : (
             <div
-              className="flex items-center justify-center h-full bg-gray-100"
-              style={{ maxHeight: "510px", overflowY: "auto" }}
+              className="flex items-center justify-center h-full bg-cover bg-center relative"
+              style={{ backgroundImage: `url(${bgImg})`, padding: "30px" }}
             >
-              <span className="text-gray-500 text-sm">
-                Please select a cookie to view details
+              <span className="font-extrabold" style={{ fontSize: "32px" }}>
+                Click on the cookie on the left to edit it.
               </span>
             </div>
           )}
         </div>
       </div>
       {/* 批量操作 */}
-      <div className="flex items-center justify-between mt-8">
+      <div className="flex items-center justify-between mt-5">
         <Space>
-          {/* <Tooltip title="Add cookie" overlayStyle={{ fontSize: "12px" }}>
-            <Button>Add</Button>
-          </Tooltip> */}
           <Tooltip
             title="Remove the all cookie"
-            overlayStyle={{ fontSize: "12px" }}
+            overlayInnerStyle={{
+              fontSize: "14px",
+              backgroundColor: "#FFFFFF",
+              color: "#381A1A",
+            }}
+            arrow={false}
+            destroyTooltipOnHide={false}
           >
-            <Button onClick={handleDeleteAllCookies}>Remove</Button>
+            <Button
+              onClick={handleDeleteAllCookies}
+              style={{ backgroundColor: "#EF4444", color: "#fff" }}
+            >
+              Remove
+            </Button>
           </Tooltip>
+          {/* <Tooltip title="Add cookie"     overlayInnerStyle={{ fontSize: "14px", backgroundColor: "#FFFFFF", color: "#381A1A"  }}
+            arrow={false}}>
+            <Button style={{ backgroundColor: "#381A1A", color: "#fff" }}>Add</Button>
+          </Tooltip> */}
           <Tooltip
-            title="Import cookies from a file or clipboard"
-            overlayStyle={{ fontSize: "12px" }}
+            title="Import cookies"
+            overlayInnerStyle={{
+              fontSize: "14px",
+              backgroundColor: "#FFFFFF",
+              color: "#381A1A",
+            }}
+            arrow={false}
+            destroyTooltipOnHide={false}
           >
             <Dropdown
               menu={{
@@ -334,12 +388,20 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
               }}
               trigger={["click"]}
             >
-              <Button>Import</Button>
+              <Button style={{ backgroundColor: "#381A1A", color: "#fff" }}>
+                Import
+              </Button>
             </Dropdown>
           </Tooltip>
           <Tooltip
-            title="Export cookies to a file or clipboard"
-            overlayStyle={{ fontSize: "12px" }}
+            title="Export cookies"
+            overlayInnerStyle={{
+              fontSize: "14px",
+              backgroundColor: "#FFFFFF",
+              color: "#381A1A",
+            }}
+            arrow={false}
+            destroyTooltipOnHide={false}
           >
             <Dropdown
               menu={{
@@ -358,7 +420,12 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
               }}
               trigger={["click"]}
             >
-              <Button>Export</Button>
+              <Button
+                size="middle"
+                style={{ backgroundColor: "#381A1A", color: "#fff" }}
+              >
+                Export
+              </Button>
             </Dropdown>
           </Tooltip>
         </Space>

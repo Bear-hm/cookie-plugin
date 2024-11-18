@@ -56,8 +56,14 @@ export const setCookie = async (
 ): Promise<void> => {
   return new Promise((resolve, reject) => {
     if (chrome?.cookies?.set) {
-      // 去掉 hostOnly 属性
-      const { hostOnly,session, ...detailsWithoutHostOnly } = setCookieDetails;
+      console.log("将要设置的 cookie", setCookieDetails);
+      
+      const { sameSite, hostOnly, session, ...detailsWithoutHostOnly } = setCookieDetails;
+      const validSameSiteValues = ["no_restriction", "lax", "strict"] as const;
+      // 提前处理 sameSite 值
+      detailsWithoutHostOnly.sameSite = validSameSiteValues.includes(sameSite as any) ? sameSite : "no_restriction";
+      
+      // const { hostOnly,session, ...detailsWithoutHostOnly } = setCookieDetails;
       console.log("set remove hostOly session", hostOnly,session);
       
       chrome.cookies.set({ url, ...detailsWithoutHostOnly }, (result) => {
@@ -127,7 +133,6 @@ export const deleteCookie = async (
             reject(chrome.runtime.lastError);
             resolve(false);
           } else {
-
             resolve(true);
           }
         }

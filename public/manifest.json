@@ -2,14 +2,16 @@
   "manifest_version": 3,
   "name": "Safe Cookie Editor",
   "version": "2.1.3",
-  "description": "Safe Cookie Editor",
+  "description": "Edit and manage your cookies! It allows you to edit, add, delete, bulk delete, import, and export cookies.",
   "content_scripts":[
     {
-      "matches":["<all_urls>"],
-      "js": ["content.js"],
-      "run_at": "document_end"
+      "matches":["<all_urls>"]
     }
   ],
+  "background": {
+		"service_worker": "background.js",
+		"type": "module"
+	},
   "permissions": [
     "storage",
     "activeTab",
@@ -24,15 +26,15 @@
   "action": {
     "default_popup": "index.html",
     "default_icon": {
-      "16": "images/icon.png",
-      "48": "images/icon.png",
-      "128": "images/icon.png"
+      "16": "images/16.png",
+      "48": "images/48.png",
+      "128": "images/128.png"
     },
-    "default_title":"Cookie Test"
+    "default_title":"Safe Cookie Editor"
   },
   "icons": {
-    "16": "images/icon.png",
-    "48": "images/icon.png",
-    "128": "images/icon.png"
+    "16": "images/16.png",
+    "48": "images/48.png",
+    "128": "images/128.png"
   }
 }

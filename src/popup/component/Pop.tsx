@@ -10,16 +10,15 @@ import {
   Dropdown,
 } from "antd";
 import useCookies from "./useCookies";
-import { DeleteFilled } from "@ant-design/icons";
 import dayjs from "dayjs";
 import Checkbox from "antd/es/checkbox/Checkbox";
 import Clipboard from "./Clipboard";
+// 图片/图标
 import bgImg from "../../assets/f-bg.png";
 import cancel from "../../assets/svg/cancel.svg";
 import update from "../../assets/svg/update.svg";
 import deleteicon from "../../assets/svg/delete-white.svg";
 import deletered from "../../assets/svg/delete-red.svg";
-
 import exportico from "../../assets/svg/export.svg";
 import importico from "../../assets/svg/import.svg";
 
@@ -44,7 +43,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
   const [importMode, setImportMode] = React.useState<
     "none" | "clipboard" | "file"
   >("none");
-  // cookie选中样式
+
   const [selectedCookieIndex, setSelectedCookieIndex] = React.useState<
     number | null
   >(null);
@@ -72,8 +71,8 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
     };
     try {
       await handleUpdateCookie(editingCookie.name, cookieDetails);
-      setEditingCookie(null);
-      setSelectedCookieIndex(null);
+      // setEditingCookie(null);
+      // setSelectedCookieIndex(null);
     } catch (error) {
       console.error("Failed to update cookie:", error);
     }
@@ -102,7 +101,6 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
         <div
           className="w-1/2 p-4 bg-white rounded-lg"
           style={{ overflowY: "auto", height: "450px" }}
-          
         >
           {cookies.length > 0 ? (
             <div>
@@ -124,6 +122,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                   onClick={() => {
                     setEditingCookie(cookie as chrome.cookies.Cookie);
                     setSelectedCookieIndex(index);
+                    setImportMode("none");
                   }}
                 >
                   <span className="text-sm">{cookie.name}</span>
@@ -381,7 +380,11 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                   {
                     key: "clipboard",
                     label: "Import from clipboard",
-                    onClick: () => setImportMode("clipboard"),
+                    onClick: () => {
+                      setEditingCookie(null);
+                      setSelectedCookieIndex(null);
+                      setImportMode("clipboard")
+                    }
                   },
                   {
                     key: "file",

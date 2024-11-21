@@ -60,25 +60,21 @@ export const getAllCookies = async (
 
 //增加Cookie
 export const setCookie = async (
-  url: string,
-  setCookieDetails: chrome.cookies.Cookie
+  setCookieDetails: Partial<chrome.cookies.Cookie> ,
+  url?: string,
 ): Promise<void> => {
   return new Promise((resolve, reject) => {
     if (chrome?.cookies?.set) {
       console.log("set cookie", setCookieDetails);
-      
-      const { hostOnly, session, sameSite, ...clearDetail } = setCookieDetails;
+      const { hostOnly, session, sameSite, domain, ...clearDetail } = setCookieDetails;
       const cookieDetails: chrome.cookies.SetDetails = {
-        url,
+        url: url || `https://${domain}`,
         ...clearDetail
       };
-      // 只有当 sameSite 为 "lax" 或 "strict" 时才设置
       if (sameSite === "lax" || sameSite === "strict") {
         cookieDetails.sameSite = sameSite;
       }
-
-      console.log("set remove hostOly session", hostOnly,session);
-      
+      console.log("set remove hostOnly session", hostOnly,session);
       chrome.cookies.set(cookieDetails, (result) => {
         if (chrome.runtime.lastError) {
           reject(chrome.runtime.lastError);
@@ -123,7 +119,6 @@ export const updateCookie = async (
         });
       });
     } else {
-     
       reject(new Error("Chrome API 不可用"));
     }
   });
@@ -148,6 +143,7 @@ export const deleteCookie = async (
           } else {
             resolve(true);
           }
+          console.log('delete res:',result);  
         }
       );
     } else {
@@ -176,9 +172,10 @@ export const deleteAllCookies = async (url: string): Promise<void> => {
 
   await Promise.all(deletePromises);
   notification.info({
-    message: "Delete All Cookies Summary",
-    description: `Successfully deleted ${successCount} cookies.\n Failed to delete ${failureCount} cookies.`,
-    style: { whiteSpace: 'pre-line' }
+    message: "Delete Results",
+    description: `Successfully deleted ${successCount}.\n Failed to delete ${failureCount}.`,
+    style: { whiteSpace: 'pre-line'},
+    placement: "top"
   });
 };
 

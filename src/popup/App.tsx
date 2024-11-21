@@ -24,7 +24,13 @@ const App = () => {
         colorPrimary:'#381A1A',
         colorPrimaryActive:'#FAF3E9',
         colorPrimaryBgHover: '#FAF3E9',
-        controlOutline: '#381A1A'
+        controlOutline: '#381A1A',
+      },
+      components: {
+        Select: {
+          optionSelectedColor: "#381A1A",
+          optionSelectedBg: "#FAF3E9"
+        }
       }
     }}
   >

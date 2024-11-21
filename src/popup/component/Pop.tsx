@@ -21,6 +21,7 @@ import deleteicon from "../../assets/svg/delete-white.svg";
 import deletered from "../../assets/svg/delete-red.svg";
 import exportico from "../../assets/svg/export.svg";
 import importico from "../../assets/svg/import.svg";
+import TextArea from "antd/es/input/TextArea";
 
 interface PopProps {
   currentUrl: string;
@@ -116,8 +117,8 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
       <div className="flex " style={{ backgroundColor: "#FAF3E9" }}>
         {/* Cookie 列表部分 */}
         <div
-          className="w-1/2 p-4 bg-white rounded-lg"
-          style={{ overflowY: "auto", height: "450px" }}
+          className="w-1/2 pt-6 px-6 bg-white rounded-lg"
+          style={{ overflowY: "auto", height: "455px" }}
         >
           {cookies.length > 0 ? (
             <div>
@@ -175,7 +176,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
         {/* 表单内容部分 */}
         <div
           className="w-1/2 rounded-lg"
-          style={{ backgroundColor: "#FAF3E9", height: "450px" }}
+          style={{ backgroundColor: "#FAF3E9", height: "455px" }}
         >
           {importMode === "clipboard" ? (
             <Clipboard
@@ -187,12 +188,12 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
             />
           ) : editingCookie ? (
             <div className="rounded-lg w-full max-w-md p-4">
-              <Space direction="vertical" className="w-full" size="middle">
-                <div className="">
+              <Space direction="vertical" className="w-full">
+                <div className="flex flex-col mt-2">
                   <label className="text-sm mr-2">
                     <span className="text-red-500">*</span>Name
                   </label>
-                  <Input
+                  <TextArea
                     value={editingCookie.name}
                     onChange={(e) => {
                       setEditingCookie({
@@ -201,9 +202,10 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                       });
                     }}
                     placeholder="Cookie Name"
+                    autoSize={{ minRows: 2, maxRows: 6 }} 
                   />
                 </div>
-                <div className="">
+                <div className="flex flex-col mt-2">
                   <label className="text-sm mr-2">
                     <span className="text-red-500">*</span>Value
                   </label>
@@ -218,7 +220,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                     placeholder="Cookie Value"
                   />
                 </div>
-                <div className="">
+                <div className="flex flex-col mt-2">
                   <label className="text-sm mr-2">Domain</label>
                   <Input
                     disabled
@@ -232,7 +234,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                     placeholder="Cookie Domain"
                   />
                 </div>
-                <div className="">
+                <div className="flex flex-col mt-2">
                   <label className="text-sm mr-2">Path</label>
                   <Input
                     value={editingCookie.path}
@@ -245,7 +247,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                     }}
                   />
                 </div>
-                <div className="">
+                <div className="flex flex-col mt-2">
                   <label className="text-sm mr-2">Expires</label>
                   <DatePicker
                     size={"small"}
@@ -265,9 +267,10 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                     placeholder="Select an expiration date"
                   />
                 </div>
-                <div className="">
+                <div className="flex flex-col mt-2">
                   <label className="text-sm mr-2">Same&nbsp;Site</label>
                   <Select
+                    popupMatchSelectWidth={false}
                     placeholder="Select a SameSite"
                     optionFilterProp="label"
                     value={editingCookie.sameSite || "no_restriction"}
@@ -365,7 +368,11 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
             destroyTooltipOnHide={false}
           >
             <Button
-              onClick={handleDeleteAllCookies}
+              onClick={() => {
+                handleDeleteAllCookies();
+                setEditingCookie(null);
+                setSelectedCookieIndex(null);
+              }}
               style={{ backgroundColor: "#EF4444", color: "#fff" ,opacity: cookies.length ? 1 : 0.5}}
               disabled={!cookies.length}
               icon={
@@ -479,6 +486,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                   setEditingCookie(null);
                   setSelectedCookieIndex(null);
                 }}
+                style={{ backgroundColor: "#6F6F6F", color: "#ffffff" }}
                 icon={
                   <img
                     src={cancel}

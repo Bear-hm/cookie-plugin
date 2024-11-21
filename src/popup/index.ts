@@ -65,16 +65,17 @@ export const setCookie = async (
 ): Promise<void> => {
   return new Promise((resolve, reject) => {
     if (chrome?.cookies?.set) {
-      console.log("set cookie", setCookieDetails);
-      const { hostOnly, session, sameSite, domain, ...clearDetail } = setCookieDetails;
+         const { hostOnly, session, sameSite, domain, storeId, ...clearDetail } = setCookieDetails;
+      const domainWithoutDot = domain?.startsWith(".") ? domain.substring(1) : domain;
       const cookieDetails: chrome.cookies.SetDetails = {
-        url: url || `https://${domain}`,
-        ...clearDetail
+        url: url || `https://${domainWithoutDot}${setCookieDetails.path || "/"}`,
+        ...clearDetail,
       };
-      if (sameSite === "lax" || sameSite === "strict") {
+
+      if (["lax", "strict", "no_restriction"].includes(sameSite as string)) {
         cookieDetails.sameSite = sameSite;
       }
-      console.log("set remove hostOnly session", hostOnly,session);
+      console.log("set remove hostOnly session storedId", hostOnly,session, storeId);
       chrome.cookies.set(cookieDetails, (result) => {
         if (chrome.runtime.lastError) {
           reject(chrome.runtime.lastError);

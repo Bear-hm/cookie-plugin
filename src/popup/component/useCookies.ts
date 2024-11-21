@@ -140,8 +140,11 @@ const useCookies = (currentUrl: string) => {
         default:
           return;
       }
+      // const existingCookies = await getAllCookies(currentUrl);
+      // const existingCookieHashes = new Set(existingCookies.map(cookie => hash(cookie)));
       // 导入每个 cookie
       for (const cookie of importedCookies) {
+        // const cookieHash = hash(cookie);
         const cookieDetails: Partial<chrome.cookies.Cookie> = {
           name: cookie.name,
           value: cookie.value,
@@ -153,8 +156,7 @@ const useCookies = (currentUrl: string) => {
           "httpOnly",
           "secure",
           "hostOnly",
-          "sameSite",
-          "session",
+          "sameSite"
         ];
         if (cookie.sameSite) {
           const validSameSiteValues = ["no_restriction", "lax", "strict"];

@@ -25,6 +25,9 @@ import importico from "../../assets/svg/import.svg";
 interface PopProps {
   currentUrl: string;
 }
+interface CookieMessage {
+  type: "cookiesChanged";
+}
 
 const Pop: React.FC<PopProps> = ({ currentUrl }) => {
   // 自定义
@@ -47,7 +50,9 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
   const [selectedCookieIndex, setSelectedCookieIndex] = React.useState<
     number | null
   >(null);
-
+  // 保留原始name值(修改)
+  const [originalCookieName, setOriginalCookieName] =
+    React.useState<string>("");
   //保存更改
   const onSaveCookie = useCallback(async () => {
     if (!editingCookie || !editingCookie.name || !editingCookie.value) {
@@ -70,16 +75,28 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
       storeId: editingCookie.storeId,
     };
     try {
-      await handleUpdateCookie(editingCookie.name, cookieDetails);
-      // setEditingCookie(null);
-      // setSelectedCookieIndex(null);
+      await handleUpdateCookie(originalCookieName, cookieDetails);
     } catch (error) {
       console.error("Failed to update cookie:", error);
     }
-  }, [editingCookie, handleUpdateCookie]);
+  }, [editingCookie, handleUpdateCookie, originalCookieName]);
 
   useEffect(() => {
+    // 初始加载
     handleGetAllCookies();
+    // 监听变化
+    if (chrome?.runtime?.onMessage) {
+      // 监听变化
+      const cookieChangeListener = (message: CookieMessage) => {
+        if (message.type === "cookiesChanged") {
+          handleGetAllCookies();
+        }
+      };
+      chrome.runtime.onMessage.addListener(cookieChangeListener);
+      return () => {
+        chrome.runtime.onMessage.removeListener(cookieChangeListener);
+      };
+    }
   }, [currentUrl, handleGetAllCookies]);
   return (
     <div
@@ -123,6 +140,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                     setEditingCookie(cookie as chrome.cookies.Cookie);
                     setSelectedCookieIndex(index);
                     setImportMode("none");
+                    setOriginalCookieName(cookie.name);
                   }}
                 >
                   <span className="text-sm">{cookie.name}</span>
@@ -261,8 +279,8 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                     }}
                     options={[
                       {
-                        value: "no_restriction",
-                        label: "No_restriction",
+                        value: "none",
+                        label: "None",
                       },
                       {
                         value: "lax",
@@ -275,7 +293,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                     ]}
                   />
                 </div>
-                <div className="">
+                {/* <div className="">
                   <label className="text-sm mr-2">HostOnly</label>
                   <Checkbox
                     checked={editingCookie.hostOnly}
@@ -296,7 +314,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                       });
                     }}
                   />
-                </div>
+                </div> */}
                 <div className="">
                   <label className="text-sm mr-2">HttpOnly</label>
                   <Checkbox
@@ -324,7 +342,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
           ) : (
             <div
               className="flex items-center justify-center h-full bg-cover bg-center relative rounded-lg"
-              style={{ backgroundImage: `url(${bgImg})`, padding: "30px" }}
+              style={{ backgroundImage: `url(${bgImg})`, padding: "15px" }}
             >
               <span className="font-extrabold" style={{ fontSize: "32px" }}>
                 Click on the cookie on the left to edit it.
@@ -348,7 +366,8 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
           >
             <Button
               onClick={handleDeleteAllCookies}
-              style={{ backgroundColor: "#EF4444", color: "#fff" }}
+              style={{ backgroundColor: "#EF4444", color: "#fff" ,opacity: cookies.length ? 1 : 0.5}}
+              disabled={!cookies.length}
               icon={
                 <img
                   src={deleteicon}
@@ -383,8 +402,8 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                     onClick: () => {
                       setEditingCookie(null);
                       setSelectedCookieIndex(null);
-                      setImportMode("clipboard")
-                    }
+                      setImportMode("clipboard");
+                    },
                   },
                   {
                     key: "file",
@@ -437,13 +456,13 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
               trigger={["click"]}
             >
               <Button
-                size="middle"
-                style={{ backgroundColor: "#381A1A", color: "#fff" }}
+                style={{ backgroundColor: "#381A1A", color: "#fff", opacity: cookies.length ? 1 : 0.5}}
+                disabled={!cookies.length}
                 icon={
                   <img
                     src={exportico}
                     alt="deleteIcon"
-                    style={{ width: "16px", height: "16px" }}
+                    style={{ width: "16px", height: "16px"}}
                   />
                 }
               >
@@ -453,7 +472,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
           </Tooltip>
         </Space>
         <div className="flex justify-end space-x-2">
-          {editingCookie && ( 
+          {editingCookie && (
             <>
               <Button
                 onClick={() => {

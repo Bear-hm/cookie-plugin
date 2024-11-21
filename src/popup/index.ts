@@ -4,8 +4,17 @@ export const getAllCookies = async (
 ): Promise<chrome.cookies.Cookie[]> => {
   return new Promise((resolve, reject) => {
     if (chrome?.cookies?.getAll) {
-      const domain = new URL(url).hostname;
-      const protocol = new URL(url).protocol;
+      let domain: string;
+      let protocol: string;
+
+      try {
+        const parsedUrl = new URL(url);
+        domain = parsedUrl.hostname;
+        protocol = parsedUrl.protocol;
+      } catch (error) {
+        reject(new Error(`Invalid URL format: ${error}`));
+        return;
+      }
       const isLocalhost = domain === "localhost" || domain === "127.0.0.1";
       chrome.cookies.getAll(
         {
@@ -27,7 +36,6 @@ export const getAllCookies = async (
         .map((cookie) => {
           const [name, value] = cookie.trim().split("=");
           if (name && value !== undefined) {
-            // 确保 name 和 value 都存在
             return {
               name,
               value: decodeURIComponent(value),
@@ -220,10 +228,6 @@ export const importFromClipboard = async (): Promise<chrome.cookies.Cookie[]> =>
   try {
     const text = await navigator.clipboard.readText();
     const cookies = JSON.parse(text) as chrome.cookies.Cookie[];
-    notification.success({
-      message: "Import Success",
-      description: "Cookies successfully imported from clipboard",
-    });
     return cookies;
   } catch (error) {
     notification.error({
@@ -248,10 +252,6 @@ export const importFromFile = (): Promise<chrome.cookies.Cookie[]> => {
         reader.onload = (event) => {
           try {
             const cookies = JSON.parse(event.target?.result as string) as chrome.cookies.Cookie[];
-            notification.success({
-              message: "Import Success",
-              description: "Cookies successfully imported from file",
-            });
             resolve(cookies);
           } catch (error) {
             notification.error({

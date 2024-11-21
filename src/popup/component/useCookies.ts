@@ -13,6 +13,7 @@ import {
 import { Modal, notification } from "antd";
 type BatchType = "clipboard" | "file";
 const useCookies = (currentUrl: string) => {
+
   const [cookies, setCookies] = useState<chrome.cookies.Cookie[]>([]);
 
   const handleGetAllCookies = useCallback(async () => {
@@ -34,11 +35,13 @@ const useCookies = (currentUrl: string) => {
       notification.success({
         message: "Cookie Set",
         description: `Successfully set cookie:`,
+        duration: 3,
       });
     } catch (error) {
       notification.error({
         message: "Cookie Set Error",
         description: `Failed to set cookie: ${error}`,
+        duration: 3,
       });
     }
   };
@@ -53,11 +56,13 @@ const useCookies = (currentUrl: string) => {
       notification.success({
         message: "Cookie Updated",
         description: `Successfully updated cookie: ${cookieDetails.name}`,
+        duration: 3,
       });
     } catch (error) {
       notification.error({
         message: "Update Failed",
         description: `Failed to update cookie: ${error}`,
+        duration: 3,
       });
     }
   };
@@ -70,12 +75,14 @@ const useCookies = (currentUrl: string) => {
         notification.success({
           message: "Cookie Deleted",
           description: `Successfully deleted cookie: ${name}`,
+          duration: 3,
         });
       }
     } catch (error) {
       notification.error({
         message: "Delete Failed",
         description: `Failed to delete cookie: ${error}`,
+        duration: 3,
       });
     }
   };
@@ -92,6 +99,7 @@ const useCookies = (currentUrl: string) => {
           notification.error({
             message: "Delete Failed",
             description: `Failed to delete all cookies: ${error}`,
+            duration: 3,
           });
         }
       },
@@ -113,6 +121,7 @@ const useCookies = (currentUrl: string) => {
         break;
     }
   };
+
   const handleImportCookies = async (type: BatchType = "clipboard") => {
     try {
       let importedCookies: chrome.cookies.Cookie[];
@@ -126,13 +135,12 @@ const useCookies = (currentUrl: string) => {
         default:
           return;
       }
-      console.log("handleImportCookies", importedCookies);
       // 导入每个 cookie
       for (const cookie of importedCookies) {
-        const cookieDetails = {
+        const cookieDetails: Partial<chrome.cookies.Cookie> = {
           name: cookie.name,
           value: cookie.value,
-        };
+        } as Partial<chrome.cookies.Cookie>;
         const optionalProperties: (keyof chrome.cookies.Cookie)[] = [
           "path",
           "domain",
@@ -143,17 +151,30 @@ const useCookies = (currentUrl: string) => {
           "sameSite",
           "session",
         ];
+        if (cookie.sameSite) {
+          const validSameSiteValues = ["no_restriction", "lax", "strict"];
+          cookieDetails.sameSite = validSameSiteValues.includes(cookie.sameSite.toLowerCase())
+            ? cookie.sameSite.toLowerCase() as "no_restriction" | "lax" | "strict"
+            : "no_restriction";
+        }
         optionalProperties.forEach((prop) => {
           if (cookie[prop] !== undefined) {
             cookieDetails[prop] = cookie[prop];
           }
         });
-        await handleSetCookie(cookieDetails);
-        await handleGetAllCookies();
+        await setCookie(currentUrl, cookieDetails);
       }
       await handleGetAllCookies();
+      notification.success({
+        message: "Successfully imported",
+        duration: 3,
+      });
     } catch (error) {
-      console.error("Failed to import cookies:", error);
+      notification.error({
+        message: "Import failed",
+        description: `Import cookies failed: ${error}`,
+        duration: 3,
+      });
     }
   };
 

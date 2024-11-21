@@ -36,12 +36,15 @@ const useCookies = (currentUrl: string) => {
         message: "Cookie Set",
         description: `Successfully set cookie:`,
         duration: 3,
+        placement: "top",
+
       });
     } catch (error) {
       notification.error({
         message: "Cookie Set Error",
         description: `Failed to set cookie: ${error}`,
         duration: 3,
+        placement: "top",
       });
     }
   };
@@ -57,12 +60,14 @@ const useCookies = (currentUrl: string) => {
         message: "Cookie Updated",
         description: `Successfully updated cookie: ${cookieDetails.name}`,
         duration: 3,
+        placement: "top",
       });
     } catch (error) {
       notification.error({
         message: "Update Failed",
         description: `Failed to update cookie: ${error}`,
         duration: 3,
+        placement: "top",
       });
     }
   };
@@ -76,6 +81,8 @@ const useCookies = (currentUrl: string) => {
           message: "Cookie Deleted",
           description: `Successfully deleted cookie: ${name}`,
           duration: 3,
+        placement: "top",
+
         });
       }
     } catch (error) {
@@ -83,6 +90,8 @@ const useCookies = (currentUrl: string) => {
         message: "Delete Failed",
         description: `Failed to delete cookie: ${error}`,
         duration: 3,
+        placement: "top",
+
       });
     }
   };
@@ -100,6 +109,8 @@ const useCookies = (currentUrl: string) => {
             message: "Delete Failed",
             description: `Failed to delete all cookies: ${error}`,
             duration: 3,
+        placement: "top",
+
           });
         }
       },
@@ -168,12 +179,14 @@ const useCookies = (currentUrl: string) => {
       notification.success({
         message: "Successfully imported",
         duration: 3,
+        placement: 'top'
       });
     } catch (error) {
       notification.error({
         message: "Import failed",
-        description: `Import cookies failed: ${error}`,
+        description: `Import cookies failed: ${JSON.stringify(error)}`,
         duration: 3,
+        placement: 'top'
       });
     }
   };

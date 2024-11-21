@@ -25,6 +25,7 @@ export const getAllCookies = async (
             reject(chrome.runtime.lastError);
           } else {
             resolve(cookies);
+            // console.log('get all cookies', cookies)
           }
         }
       );
@@ -64,17 +65,21 @@ export const setCookie = async (
 ): Promise<void> => {
   return new Promise((resolve, reject) => {
     if (chrome?.cookies?.set) {
-      console.log("将要设置的 cookie", setCookieDetails);
+      console.log("set cookie", setCookieDetails);
       
-      const { sameSite, hostOnly, session, ...detailsWithoutHostOnly } = setCookieDetails;
-      const validSameSiteValues = ["no_restriction", "lax", "strict"] as const;
-      // 提前处理 sameSite 值
-      detailsWithoutHostOnly.sameSite = validSameSiteValues.includes(sameSite as any) ? sameSite : "no_restriction";
-      
-      // const { hostOnly,session, ...detailsWithoutHostOnly } = setCookieDetails;
+      const { hostOnly, session, sameSite, ...clearDetail } = setCookieDetails;
+      const cookieDetails: chrome.cookies.SetDetails = {
+        url,
+        ...clearDetail
+      };
+      // 只有当 sameSite 为 "lax" 或 "strict" 时才设置
+      if (sameSite === "lax" || sameSite === "strict") {
+        cookieDetails.sameSite = sameSite;
+      }
+
       console.log("set remove hostOly session", hostOnly,session);
       
-      chrome.cookies.set({ url, ...detailsWithoutHostOnly }, (result) => {
+      chrome.cookies.set(cookieDetails, (result) => {
         if (chrome.runtime.lastError) {
           reject(chrome.runtime.lastError);
         } else if (!result) {
@@ -204,7 +209,6 @@ export const copyText = (text: string) => {
     document.body.removeChild(fakeText);
   }
 };
-
 //导出为json
 export const exportCookiesAsFile = (cookies: chrome.cookies.Cookie[]) => {
   const cookiesJson = JSON.stringify(cookies, null, 2);
@@ -217,12 +221,7 @@ export const exportCookiesAsFile = (cookies: chrome.cookies.Cookie[]) => {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  notification.success({
-    message: "export File Success",
-    description: "Cookie information successfully exported to file",
-  });
 };
-
 // 从剪贴板导入
 export const importFromClipboard = async (): Promise<chrome.cookies.Cookie[]> => {
   try {
@@ -232,12 +231,11 @@ export const importFromClipboard = async (): Promise<chrome.cookies.Cookie[]> =>
   } catch (error) {
     notification.error({
       message: "Import Error",
-      description: "Failed to import cookies from clipboard. Please ensure valid JSON format.",
+      description: `Error: ${error}`,
     });
     throw error;
   }
 };
-
 // 从文件导入
 export const importFromFile = (): Promise<chrome.cookies.Cookie[]> => {
   return new Promise((resolve, reject) => {
@@ -254,10 +252,6 @@ export const importFromFile = (): Promise<chrome.cookies.Cookie[]> => {
             const cookies = JSON.parse(event.target?.result as string) as chrome.cookies.Cookie[];
             resolve(cookies);
           } catch (error) {
-            notification.error({
-              message: "Import Error",
-              description: "Failed to parse JSON file",
-            });
             reject(error);
           }
         };

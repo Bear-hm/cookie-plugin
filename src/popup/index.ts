@@ -62,13 +62,14 @@ export const getAllCookies = async (
 export const setCookie = async (
   setCookieDetails: Partial<chrome.cookies.Cookie> ,
   url?: string,
-): Promise<void> => {
+): Promise<boolean> => {
   return new Promise((resolve, reject) => {
     if (chrome?.cookies?.set) {
          const { hostOnly, session, sameSite, domain, storeId, ...clearDetail } = setCookieDetails;
       const domainWithoutDot = domain?.startsWith(".") ? domain.substring(1) : domain;
       const cookieDetails: chrome.cookies.SetDetails = {
         url: url || `https://${domainWithoutDot}${setCookieDetails.path || "/"}`,
+        domain: domainWithoutDot,
         ...clearDetail,
       };
 
@@ -82,7 +83,7 @@ export const setCookie = async (
         } else if (!result) {
           reject(new Error("Failed to set cookie."));
         } else {
-          resolve();
+          resolve(true);
         }
       });
     } else {

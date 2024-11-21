@@ -174,8 +174,12 @@ const useCookies = (currentUrl: string) => {
             cookieDetails[prop] = cookie[prop];
           }
         });
-        await setCookie(cookieDetails);
-        successCount++;
+        const success = await setCookie(cookieDetails);
+        if(success) {
+          successCount++;
+        }else {
+          failureCount++;
+        }
       }
       await handleGetAllCookies();
       notification.success({
@@ -186,7 +190,6 @@ const useCookies = (currentUrl: string) => {
         style: { whiteSpace: "pre-line" },
       });
     } catch (error) {
-      failureCount++;
       notification.error({
         message: "Import failed!",
         description: `Import cookies failed: ${JSON.stringify(error)}`,

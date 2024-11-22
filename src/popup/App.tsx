@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Pop from "./component/Pop";
 import { ConfigProvider } from "antd";
+import "./main"
 const App = () => {
   const [currentUrl, setCurrentUrl] = useState<string>("");
   

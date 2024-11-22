@@ -76,6 +76,7 @@ const useCookies = (currentUrl: string) => {
           message: "Deleted successfully",
           duration: 3,
           placement: "top",
+          
         });
       }
     } catch (error) {

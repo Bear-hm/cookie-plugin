@@ -15,6 +15,8 @@ const Clipboard: React.FC<ClipboardProps> = ({ onCancel, onImport }) => {
         notification.error({
           message: "Import Error",
           description: "Invalid JSON format",
+          duration: 3,
+          placement: "top",
         });
       }
       await onImport(cookies);
@@ -22,7 +24,9 @@ const Clipboard: React.FC<ClipboardProps> = ({ onCancel, onImport }) => {
     } catch (error) {
       notification.error({
         message: "In Clipboard Import Error",
-        description: "Invalid JSON format",
+        description: `Error: ${error}`,
+        duration: 3,
+        placement: "top",
       });
     }
   };

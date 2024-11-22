@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useRef,useState } from "react";
 import {
   Input,
   Button,
@@ -22,7 +22,7 @@ import deletered from "../../assets/svg/delete-red.svg";
 import exportico from "../../assets/svg/export.svg";
 import importico from "../../assets/svg/import.svg";
 import TextArea from "antd/es/input/TextArea";
-
+import { useHover } from "ahooks";
 interface PopProps {
   currentUrl: string;
 }
@@ -42,6 +42,9 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
     handleUpdateCookie,
   } = useCookies(currentUrl);
 
+  const tooltipRef = useRef(null)
+  const isHovering = useHover(tooltipRef)
+  const [isDropOpen, setIsDropOpen] = useState(false)
   const [editingCookie, setEditingCookie] =
     React.useState<chrome.cookies.Cookie | null>(null);
   const [importMode, setImportMode] = React.useState<
@@ -59,6 +62,8 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
     if (!editingCookie || !editingCookie.name || !editingCookie.value) {
       notification.warning({
         message: "Please enter the cookie name and value",
+        duration: 3,
+        placement: "top",
       });
       return;
     }
@@ -77,13 +82,13 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
     };
     try {
       await handleUpdateCookie(originalCookieName, cookieDetails);
+      setOriginalCookieName(editingCookie.name);
     } catch (error) {
       console.error("Failed to update cookie:", error);
     }
   }, [editingCookie, handleUpdateCookie, originalCookieName]);
 
   useEffect(() => {
-    // 初始加载
     handleGetAllCookies();
     // 监听变化
     if (chrome?.runtime?.onMessage) {
@@ -158,6 +163,8 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDeleteCookie(cookie.name);
+                        setEditingCookie(null);
+                        setSelectedCookieIndex(null);
                       }}
                     ></Button>
                   </div>
@@ -392,11 +399,13 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
           </Tooltip> */}
           <Tooltip
             title="Import cookies"
+ 
             overlayInnerStyle={{
               fontSize: "14px",
               backgroundColor: "#FFFFFF",
               color: "#381A1A",
             }}
+            open={isHovering && !isDropOpen}
             arrow={false}
             destroyTooltipOnHide={false}
           >
@@ -420,9 +429,11 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                 ],
               }}
               trigger={["click"]}
+              onOpenChange={(open) => setIsDropOpen(open)}
             >
               <Button
                 style={{ backgroundColor: "#381A1A", color: "#fff" }}
+                ref={tooltipRef}
                 icon={
                   <img
                     src={importico}
@@ -442,6 +453,8 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
               backgroundColor: "#FFFFFF",
               color: "#381A1A",
             }}
+
+            trigger={["hover", "click"]}
             arrow={false}
             destroyTooltipOnHide={false}
           >
@@ -461,6 +474,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                 ],
               }}
               trigger={["click"]}
+              // getPopupContainer={trigger => trigger.parentNode}
             >
               <Button
                 style={{ backgroundColor: "#381A1A", color: "#fff", opacity: cookies.length ? 1 : 0.5}}

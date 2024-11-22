@@ -190,12 +190,16 @@ export const copyText = (text: string) => {
         notification.success({
           message: "Copy Success",
           description: "Text successfully copied to clipboard",
+          duration: 3,
+          placement: "top",
         });
       })
       .catch((error) => {
         notification.success({
           message: "Copy Error",
           description: `Error: ${error}`,
+          duration: 3,
+          placement: "top",
         });
       });
   } else {
@@ -231,6 +235,8 @@ export const importFromClipboard = async (): Promise<chrome.cookies.Cookie[]> =>
     notification.error({
       message: "Import Error",
       description: `Error: ${error}`,
+      duration: 3,
+      placement: "top",
     });
     throw error;
   }

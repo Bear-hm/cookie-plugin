@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Safe Cookie Editor",
   "version": "2.1.3",
-  "description": "Edit and manage your cookies! It allows you to edit, add, delete, bulk delete, import, and export cookies.",
+  "description": "Simple tool to manage cookies! You can delete,  import,  export and edit cookies.",
   "offline_enabled": true,
   "content_scripts":[
     {

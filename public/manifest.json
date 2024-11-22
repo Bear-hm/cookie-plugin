@@ -15,7 +15,6 @@
 		"type": "module"
 	},
   "permissions": [
-    "storage",
     "activeTab",
     "cookies",
     "tabs",

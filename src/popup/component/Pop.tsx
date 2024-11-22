@@ -3,7 +3,6 @@ import {
   Input,
   Button,
   Space,
-  notification,
   Tooltip,
   Select,
   DatePicker,
@@ -14,6 +13,8 @@ import useCookies from "./useCookies";
 import dayjs from "dayjs";
 import Checkbox from "antd/es/checkbox/Checkbox";
 import Clipboard from "./Clipboard";
+import {notice} from '../../common/hooks/useNotice'
+
 // 图片/图标
 import bgImg from "../../assets/f-bg.png";
 import cancel from "../../assets/svg/cancel.svg";
@@ -66,11 +67,9 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
   //保存更改
   const onSaveCookie = useCallback(async () => {
     if (!editingCookie || !editingCookie.name || !editingCookie.value) {
-      notification.warning({
+      notice.warning({
         message: "Please enter the cookie name and value",
-        duration: 3,
-        placement: "top",
-      });
+      })
       return;
     }
     const cookieDetails: chrome.cookies.Cookie = {
@@ -155,7 +154,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                     setOriginalCookieName(cookie.name);
                   }}
                 >
-                  <span className="text-sm">{cookie.name}</span>
+                  <span className="text-sm truncate mr-6">{cookie.name}</span>
                   <div className="absolute right-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                     <Button
                       style={{ padding: 0, border: "none", background: "none" }}
@@ -169,11 +168,12 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                       onClick={(e) => {
                         e.stopPropagation();
                         Modal.confirm({
-                          title: 'Confirm Actioin',
-                          content: `This action is irreversible. Are you sure you want to remove this？`,
+                          title: 'Confirm Delete',
+                          content: `Are you sure you want to delete this cookie？`,
                           centered: true,
                           okButtonProps: { style: { backgroundColor: '#381A1A', color: '#fff' } }, 
-                          cancelButtonProps: { style: { backgroundColor: '#6F6F6F', color: '#fff' } }, 
+                          cancelButtonProps: { style: { backgroundColor: '#6F6F6F', color: '#fff' } },
+                          okText: 'Remove', 
                           onOk: () => {
                             handleDeleteCookie(cookie.name);
                             setEditingCookie(null);
@@ -224,7 +224,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                       });
                     }}
                     placeholder="Cookie Name"
-                    autoSize={{ minRows: 2, maxRows: 6 }} 
+                    autoSize={{ minRows: 2, maxRows: 2 }} 
                   />
                 </div>
                 <div className="flex flex-col mt-2">
@@ -309,6 +309,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                       {
                         value: "none",
                         label: "None",
+                        disabled: true,
                       },
                       {
                         value: "lax",

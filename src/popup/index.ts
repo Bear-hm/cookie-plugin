@@ -1,5 +1,4 @@
-import { notification } from "antd";
-
+import {notice} from '../common/hooks/useNotice'
 export const getAllCookies = async (
   url: string
 ): Promise<chrome.cookies.Cookie[]> => {
@@ -118,13 +117,9 @@ export const updateCookie = async (
           reject(chrome.runtime.lastError);
           return;
         }
-
         // 去除hostOnly属性
         const { session, hostOnly, ...detailsWithoutRestrictedProps } =
           newDetails;
-        console.log("delete hostOnly", hostOnly);
-        console.log("delete session", session);
-
         chrome.cookies.set(
           { url, ...detailsWithoutRestrictedProps },
           (setResult) => {
@@ -189,12 +184,11 @@ export const deleteAllCookies = async (url: string): Promise<void> => {
   });
 
   await Promise.all(deletePromises);
-  notification.info({
+  notice.info({
     message: "Delete Results",
     description: `Successfully deleted ${successCount}.\n Failed to delete ${failureCount}.`,
-    style: { whiteSpace: "pre-line" },
-    placement: "top",
-  });
+    style: { whiteSpace: "pre-line"},
+  })
 };
 
 //复制到剪切板
@@ -203,20 +197,16 @@ export const copyText = (text: string) => {
     navigator.clipboard
       .writeText(text)
       .then(() => {
-        notification.success({
+        notice.success({
           message: "Copy Success",
           description: "Text successfully copied to clipboard",
-          duration: 3,
-          placement: "top",
-        });
+        })
       })
       .catch((error) => {
-        notification.success({
+        notice.error({
           message: "Copy Error",
           description: `Error: ${error}`,
-          duration: 3,
-          placement: "top",
-        });
+        })
       });
   } else {
     const fakeText = document.createElement("textarea");
@@ -250,12 +240,10 @@ export const importFromClipboard = async (): Promise<
     const cookies = JSON.parse(text) as chrome.cookies.Cookie[];
     return cookies;
   } catch (error) {
-    notification.error({
+    notice.error({
       message: "Import Error",
       description: `Error: ${error}`,
-      duration: 3,
-      placement: "top",
-    });
+    })
     throw error;
   }
 };
@@ -265,7 +253,6 @@ export const importFromFile = (): Promise<chrome.cookies.Cookie[]> => {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = ".json";
-
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {

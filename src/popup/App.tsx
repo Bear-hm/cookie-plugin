@@ -29,7 +29,10 @@ const App = () => {
         Select: {
           optionSelectedColor: "#381A1A",
           optionSelectedBg: "#FAF3E9"
-        }
+        },
+        // Notification:{
+        //   width:100,
+        // }
       }
     }}
   >

@@ -10,13 +10,14 @@ import {
   importFromFile,
   updateCookie,
 } from "../index";
-import { Modal, notification } from "antd";
+import { Modal } from "antd";
+import {notice} from '../../common/hooks/useNotice'
 type BatchType = "clipboard" | "file";
 const useCookies = (currentUrl: string) => {
   const [cookies, setCookies] = useState<chrome.cookies.Cookie[]>([]);
 
   const handleGetAllCookies = useCallback(async () => {
-    console.log("Fetching cookies...");
+    // console.log("Fetching cookies...");
     try {
       const retrievedCookies = await getAllCookies(currentUrl);
       setCookies(retrievedCookies);
@@ -31,17 +32,27 @@ const useCookies = (currentUrl: string) => {
     try {
       await setCookie(cookieDetails);
       await handleGetAllCookies();
-      notification.success({
+      notice.success({
         message: "Successfully set cookie",
-        duration: 3,
-        placement: "top",
-      });
+        style: {
+          width: 300,
+        }
+      })
+      // notification.success({
+      //   message: "Successfully set cookie",
+      //   duration: 3,
+      //   placement: "top",
+      // });
     } catch (error) {
-      notification.error({
+      notice.error({
         message: `Failed to set cookie: ${error}`,
-        duration: 3,
-        placement: "top",
-      });
+      })
+      // notification.error({
+      //   message: `Failed to set cookie: ${error}`,
+      //   duration: 3,
+      //   placement: "top",
+        
+      // });
     }
   };
 
@@ -52,18 +63,17 @@ const useCookies = (currentUrl: string) => {
     try {
       await updateCookie(currentUrl, oldName, cookieDetails);
       await handleGetAllCookies();
-      notification.success({
+      notice.success({
         message: "Updated successfully",
-        duration: 3,
-        placement: "top",
-      });
+        style: {
+          width: 300,
+        }
+      })
     } catch (error) {
-      notification.error({
+      notice.error({
         message: "Updated failed!",
         description: `Failed to update cookie: ${error}`,
-        duration: 3,
-        placement: "top",
-      });
+      })
     }
   };
 
@@ -72,20 +82,18 @@ const useCookies = (currentUrl: string) => {
       const res = await deleteCookie(currentUrl, name);
       await handleGetAllCookies();
       if (res) {
-        notification.success({
+        notice.success({
           message: "Deleted successfully",
-          duration: 3,
-          placement: "top",
-          
-        });
+          style:{
+            width: 300
+          }
+        })
       }
     } catch (error) {
-      notification.error({
+      notice.error({
         message: "Delete Failed!",
         description: `Failed to delete cookie: ${error}`,
-        duration: 3,
-        placement: "top",
-      });
+      })
     }
   };
 
@@ -96,17 +104,16 @@ const useCookies = (currentUrl: string) => {
       centered:true,
       okButtonProps: { style: { backgroundColor: '#381A1A', color: '#fff' } }, 
       cancelButtonProps: { style: { backgroundColor: '#6F6F6F', color: '#fff' } }, 
+      okText: 'Remove', 
       onOk: async () => {
         try {
           await deleteAllCookies(currentUrl);
           await handleGetAllCookies();
         } catch (error) {
-          notification.error({
+          notice.error({
             message: "Delete Failed",
             description: `Failed to delete all cookies: ${error}`,
-            duration: 3,
-            placement: "top",
-          });
+          })
         }
       },
     });
@@ -185,20 +192,16 @@ const useCookies = (currentUrl: string) => {
         }
       }
       await handleGetAllCookies();
-      notification.success({
+      notice.success({
         message: 'Import Results',
         description: `Successfully imported ${successCount}.\n Failed to import ${failureCount}.`,
-        duration: 3,
-        placement: "top",
-        style: { whiteSpace: "pre-line" },
-      });
+        style: { whiteSpace: "pre-line"},
+      })
     } catch (error) {
-      notification.error({
-        message: "Import failed!",
-        description: `Import cookies failed: ${JSON.stringify(error)}`,
-        duration: 3,
-        placement: "top",
-      });
+      notice.error({
+        message: "Import Failed!",
+        description: `Import cookies failed: ${JSON.stringify(error)}`
+      })
     }
   };
 

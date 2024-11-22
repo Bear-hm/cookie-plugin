@@ -26,14 +26,11 @@ export const getAllCookies = async (
             reject(chrome.runtime.lastError);
           } else {
             resolve(cookies);
-            // console.log('get all cookies', cookies)
           }
         }
       );
     } else {
       const cookieString = document.cookie;
-      // console.log('document拿到的cookie',cookieString);
-      
       const cookies: chrome.cookies.Cookie[] = cookieString
         .split(";")
         .map((cookie) => {

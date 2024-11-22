@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "Cookie Editor - Cookie Manager",
+  "name": "__MSG_extensionName__",
   "version": "2.1.3",
-  "description": "Simple tool to manage cookies! You can delete,  import,  export and edit cookies.",
+  "description": "__MSG_extensionDescription__",
   "offline_enabled": true,
+  "default_locale": "en",
   "content_scripts":[
     {
       "matches":["<all_urls>"],
@@ -26,12 +27,8 @@
   ],
   "action": {
     "default_popup": "index.html",
-    "default_icon": {
-      "16": "icons/16.png",
-      "48": "icons/48.png",
-      "128": "icons/128.png"
-    },
-    "default_title":"Safe Cookie Editor"
+    "default_icon": "icons/128.png",
+    "default_title":"__MSG_extensionName__"
   },
   "icons": {
     "16": "icons/16.png",

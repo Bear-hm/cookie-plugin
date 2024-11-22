@@ -1,32 +1,31 @@
-// // 确保在 TypeScript 文件的顶部包含这一行来指定全局的 chrome 对象
-// /// <reference types="chrome"/>
+chrome.cookies.onChanged.addListener((changeInfo) => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (tabs[0]?.url) {
+      const currentUrl = tabs[0].url;
+      const cookieDomain = changeInfo.cookie.domain;
+      
+      if (currentUrl.includes(cookieDomain.replace(/^\./, ''))) {
+        chrome.cookies.getAll({ url: currentUrl }).then((cookies) => {
+          chrome.runtime.sendMessage({
+            type: "cookiesChanged",
+            cookies: cookies
+          });
+        });
+      }
+    }
+  });
+});
 
-// chrome.runtime.onInstalled.addListener(function () {
-//     // 默认先禁止Page Action。如果不加这一行，则无法生效下面的规则
-//     chrome.action.disable();
-
-//     chrome.declarativeContent.onPageChanged.removeRules(undefined, () => {
-//         // 设置规则
-//         const rule = {
-//             // 运行插件运行的页面URL规则
-//             conditions: [
-//                 new chrome.declarativeContent.PageStateMatcher({
-//                     pageUrl: {
-//                         // 适配所有网站
-//                         schemes: ['http', 'https'] // 适配http和https协议的网页
-//                     }
-//                 })
-//             ],
-//             actions: [
-//                 new chrome.declarativeContent.ShowAction() // 显示Action
-//             ]
-//         };
-
-//         // 整合所有规则
-//         const rules = [rule];
-
-//         // 执行规则
-//         chrome.declarativeContent.onPageChanged.addRules(rules);
-//     });
-// });
-console.log('background.ts test');
+// 保留原有的消息监听
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.type === "getCookies") {
+    chrome.cookies.getAll({ url: request.url })
+      .then((cookies) => {
+        sendResponse({ success: true, cookies });
+      })
+      .catch((error) => {
+        sendResponse({ success: false, error: error.message });
+      });
+    return true;
+  }
+});

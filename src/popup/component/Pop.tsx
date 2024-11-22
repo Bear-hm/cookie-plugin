@@ -8,6 +8,7 @@ import {
   Select,
   DatePicker,
   Dropdown,
+  Modal,
 } from "antd";
 import useCookies from "./useCookies";
 import dayjs from "dayjs";
@@ -41,11 +42,12 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
     handleImportCookies,
     handleUpdateCookie,
   } = useCookies(currentUrl);
-
+// 控制下拉和hover框不要重叠
   const tooltipRef = useRef(null)
   const isHovering = useHover(tooltipRef)
   const exportRef = useRef(null)
   const isExportHover = useHover(exportRef)
+
   const [isExportOpen, setIsExportOpen] = useState(false)
   const [isDropOpen, setIsDropOpen] = useState(false)
   const [editingCookie, setEditingCookie] =
@@ -119,9 +121,9 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
         paddingRight: "0",
       }}
     >
-      <span className="flex items-center mb-3">
+      <span className="flex items-end mb-3">
         <h1 className="text-2xl font-bold">Cookie Editor - Cookie Manager</h1>
-        <span className="text-sm text-gray-500 ml-2">V2.1.3</span>
+        <span className="text-sm text-gray-500 ml-3">V2.1.3</span>
       </span>
       <div className="flex " style={{ backgroundColor: "#FAF3E9" }}>
         {/* Cookie 列表部分 */}
@@ -166,9 +168,18 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                       }
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDeleteCookie(cookie.name);
-                        setEditingCookie(null);
-                        setSelectedCookieName(null);
+                        Modal.confirm({
+                          title: 'Confirm Actioin',
+                          content: `This action is irreversible. Are you sure you want to remove this？`,
+                          centered: true,
+                          okButtonProps: { style: { backgroundColor: '#381A1A', color: '#fff' } }, 
+                          cancelButtonProps: { style: { backgroundColor: '#6F6F6F', color: '#fff' } }, 
+                          onOk: () => {
+                            handleDeleteCookie(cookie.name);
+                            setEditingCookie(null);
+                            setSelectedCookieName(null);
+                          },
+                        });
                       }}
                     ></Button>
                   </div>
@@ -274,6 +285,9 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                         ...editingCookie,
                         expirationDate: date ? date.unix() : undefined,
                       });
+                    }}
+                    disabledDate={(current) => {
+                      return current && current < dayjs().startOf('day');
                     }}
                     placeholder="Select an expiration date"
                   />

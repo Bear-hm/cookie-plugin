@@ -94,6 +94,8 @@ const useCookies = (currentUrl: string) => {
       title: "Confirm Delete",
       content: "Are you sure you want to delete all cookies?",
       centered:true,
+      okButtonProps: { style: { backgroundColor: '#381A1A', color: '#fff' } }, 
+      cancelButtonProps: { style: { backgroundColor: '#6F6F6F', color: '#fff' } }, 
       onOk: async () => {
         try {
           await deleteAllCookies(currentUrl);

@@ -7,9 +7,13 @@ export const getAllCookies = async (
     if (chrome?.cookies?.getAll) {
       let domain: string;
       let protocol: string;
-
       try {
-        const parsedUrl = new URL(url);
+        //url空，直接返回,不用执行下面程序
+        if (!url?.trim()) {
+          return;
+        }
+        const urlWithProtocol = url.includes("://") ? url : `https://${url}`;
+        const parsedUrl = new URL(urlWithProtocol);
         domain = parsedUrl.hostname;
         protocol = parsedUrl.protocol;
       } catch (error) {
@@ -59,15 +63,19 @@ export const getAllCookies = async (
 
 //增加Cookie
 export const setCookie = async (
-  setCookieDetails: Partial<chrome.cookies.Cookie> ,
-  url?: string,
+  setCookieDetails: Partial<chrome.cookies.Cookie>,
+  url?: string
 ): Promise<boolean> => {
   return new Promise((resolve, reject) => {
     if (chrome?.cookies?.set) {
-         const { hostOnly, session, sameSite, domain, storeId, ...clearDetail } = setCookieDetails;
-      const domainWithoutDot = domain?.startsWith(".") ? domain.substring(1) : domain;
+      const { hostOnly, session, sameSite, domain, storeId, ...clearDetail } =
+        setCookieDetails;
+      const domainWithoutDot = domain?.startsWith(".")
+        ? domain.substring(1)
+        : domain;
       const cookieDetails: chrome.cookies.SetDetails = {
-        url: url || `https://${domainWithoutDot}${setCookieDetails.path || "/"}`,
+        url:
+          url || `https://${domainWithoutDot}${setCookieDetails.path || "/"}`,
         domain: domainWithoutDot,
         ...clearDetail,
       };
@@ -75,7 +83,12 @@ export const setCookie = async (
       if (["lax", "strict", "no_restriction"].includes(sameSite as string)) {
         cookieDetails.sameSite = sameSite;
       }
-      console.log("set remove hostOnly session storedId", hostOnly,session, storeId);
+      console.log(
+        "set remove hostOnly session storedId",
+        hostOnly,
+        session,
+        storeId
+      );
       chrome.cookies.set(cookieDetails, (result) => {
         if (chrome.runtime.lastError) {
           reject(chrome.runtime.lastError);
@@ -107,17 +120,21 @@ export const updateCookie = async (
         }
 
         // 去除hostOnly属性
-        const { session, hostOnly, ...detailsWithoutRestrictedProps } = newDetails;
+        const { session, hostOnly, ...detailsWithoutRestrictedProps } =
+          newDetails;
         console.log("delete hostOnly", hostOnly);
         console.log("delete session", session);
-        
-        chrome.cookies.set({url, ...detailsWithoutRestrictedProps }, (setResult) => {
-          if (chrome.runtime.lastError) {
-            reject(chrome.runtime.lastError);
-          } else {
-            resolve();
+
+        chrome.cookies.set(
+          { url, ...detailsWithoutRestrictedProps },
+          (setResult) => {
+            if (chrome.runtime.lastError) {
+              reject(chrome.runtime.lastError);
+            } else {
+              resolve();
+            }
           }
-        });
+        );
       });
     } else {
       reject(new Error("Chrome API 不可用"));
@@ -144,7 +161,7 @@ export const deleteCookie = async (
           } else {
             resolve(true);
           }
-          console.log('delete res:',result);  
+          console.log("delete res:", result);
         }
       );
     } else {
@@ -167,7 +184,7 @@ export const deleteAllCookies = async (url: string): Promise<void> => {
       })
       .catch((error) => {
         failureCount++;
-        console.log('delete cookie',error);
+        console.log("delete cookie", error);
       });
   });
 
@@ -175,8 +192,8 @@ export const deleteAllCookies = async (url: string): Promise<void> => {
   notification.info({
     message: "Delete Results",
     description: `Successfully deleted ${successCount}.\n Failed to delete ${failureCount}.`,
-    style: { whiteSpace: 'pre-line'},
-    placement: "top"
+    style: { whiteSpace: "pre-line" },
+    placement: "top",
   });
 };
 
@@ -225,7 +242,9 @@ export const exportCookiesAsFile = (cookies: chrome.cookies.Cookie[]) => {
   URL.revokeObjectURL(url);
 };
 // 从剪贴板导入
-export const importFromClipboard = async (): Promise<chrome.cookies.Cookie[]> => {
+export const importFromClipboard = async (): Promise<
+  chrome.cookies.Cookie[]
+> => {
   try {
     const text = await navigator.clipboard.readText();
     const cookies = JSON.parse(text) as chrome.cookies.Cookie[];
@@ -243,17 +262,19 @@ export const importFromClipboard = async (): Promise<chrome.cookies.Cookie[]> =>
 // 从文件导入
 export const importFromFile = (): Promise<chrome.cookies.Cookie[]> => {
   return new Promise((resolve, reject) => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-    
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json";
+
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
         const reader = new FileReader();
         reader.onload = (event) => {
           try {
-            const cookies = JSON.parse(event.target?.result as string) as chrome.cookies.Cookie[];
+            const cookies = JSON.parse(
+              event.target?.result as string
+            ) as chrome.cookies.Cookie[];
             resolve(cookies);
           } catch (error) {
             reject(error);

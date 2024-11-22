@@ -47,7 +47,6 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
   const exportRef = useRef(null)
   const isExportHover = useHover(exportRef)
   const [isExportOpen, setIsExportOpen] = useState(false)
-
   const [isDropOpen, setIsDropOpen] = useState(false)
   const [editingCookie, setEditingCookie] =
     React.useState<chrome.cookies.Cookie | null>(null);

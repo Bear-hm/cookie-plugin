@@ -1,4 +1,5 @@
 import { notification } from "antd";
+
 export const getAllCookies = async (
   url: string
 ): Promise<chrome.cookies.Cookie[]> => {
@@ -31,7 +32,8 @@ export const getAllCookies = async (
       );
     } else {
       const cookieString = document.cookie;
-
+      console.log('document拿到的cookie',cookieString);
+      
       const cookies: chrome.cookies.Cookie[] = cookieString
         .split(";")
         .map((cookie) => {

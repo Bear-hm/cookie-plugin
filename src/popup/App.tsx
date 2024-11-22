@@ -3,13 +3,11 @@ import Pop from "./component/Pop";
 import { ConfigProvider } from "antd";
 const App = () => {
   const [currentUrl, setCurrentUrl] = useState<string>("");
-  console.log("current Url ",currentUrl);
   
   useEffect(() => {
     if (chrome?.tabs?.query) {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         const url = tabs[0]?.url || "";
-        console.log("Current tab URL:", url);
         setCurrentUrl(url);
       });
     } else {

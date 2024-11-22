@@ -44,6 +44,10 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
 
   const tooltipRef = useRef(null)
   const isHovering = useHover(tooltipRef)
+  const exportRef = useRef(null)
+  const isExportHover = useHover(exportRef)
+  const [isExportOpen, setIsExportOpen] = useState(false)
+
   const [isDropOpen, setIsDropOpen] = useState(false)
   const [editingCookie, setEditingCookie] =
     React.useState<chrome.cookies.Cookie | null>(null);
@@ -51,8 +55,9 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
     "none" | "clipboard" | "file"
   >("none");
 
-  const [selectedCookieIndex, setSelectedCookieIndex] = React.useState<
-    number | null
+  // 选中
+  const [selectedCookieName, setSelectedCookieName] = React.useState<
+    string | null
   >(null);
   // 保留原始name值(修改)
   const [originalCookieName, setOriginalCookieName] =
@@ -133,18 +138,18 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                   className={`group flex justify-between items-center p-2 border-b cursor-pointer relative `}
                   style={{
                     backgroundColor:
-                      selectedCookieIndex === index ? "#FAF3E9" : "",
+                    selectedCookieName === cookie.name ? "#FAF3E9" : "",
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = "#FAF3E9";
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.backgroundColor =
-                      selectedCookieIndex === index ? "#FAF3E9" : "";
+                    selectedCookieName === cookie.name ? "#FAF3E9" : "";
                   }}
                   onClick={() => {
                     setEditingCookie(cookie as chrome.cookies.Cookie);
-                    setSelectedCookieIndex(index);
+                    setSelectedCookieName(cookie.name);
                     setImportMode("none");
                     setOriginalCookieName(cookie.name);
                   }}
@@ -164,7 +169,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                         e.stopPropagation();
                         handleDeleteCookie(cookie.name);
                         setEditingCookie(null);
-                        setSelectedCookieIndex(null);
+                        setSelectedCookieName(null);
                       }}
                     ></Button>
                   </div>
@@ -378,7 +383,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
               onClick={() => {
                 handleDeleteAllCookies();
                 setEditingCookie(null);
-                setSelectedCookieIndex(null);
+                setSelectedCookieName(null);
               }}
               style={{ backgroundColor: "#EF4444", color: "#fff" ,opacity: cookies.length ? 1 : 0.5}}
               disabled={!cookies.length}
@@ -399,7 +404,6 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
           </Tooltip> */}
           <Tooltip
             title="Import cookies"
- 
             overlayInnerStyle={{
               fontSize: "14px",
               backgroundColor: "#FFFFFF",
@@ -417,7 +421,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                     label: "Import from clipboard",
                     onClick: () => {
                       setEditingCookie(null);
-                      setSelectedCookieIndex(null);
+                      setSelectedCookieName(null);
                       setImportMode("clipboard");
                     },
                   },
@@ -456,6 +460,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
 
             trigger={["hover", "click"]}
             arrow={false}
+            open={!isExportOpen && isExportHover}
             destroyTooltipOnHide={false}
           >
             <Dropdown
@@ -474,11 +479,13 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
                 ],
               }}
               trigger={["click"]}
+              onOpenChange={(open) => setIsExportOpen(open)}
               // getPopupContainer={trigger => trigger.parentNode}
             >
               <Button
                 style={{ backgroundColor: "#381A1A", color: "#fff", opacity: cookies.length ? 1 : 0.5}}
                 disabled={!cookies.length}
+                ref={exportRef}
                 icon={
                   <img
                     src={exportico}
@@ -498,7 +505,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
               <Button
                 onClick={() => {
                   setEditingCookie(null);
-                  setSelectedCookieIndex(null);
+                  setSelectedCookieName(null);
                 }}
                 style={{ backgroundColor: "#6F6F6F", color: "#ffffff" }}
                 icon={

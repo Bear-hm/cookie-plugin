@@ -116,7 +116,7 @@ const Pop: React.FC<PopProps> = ({ currentUrl }) => {
       }}
     >
       <span className="flex items-center mb-3">
-        <h1 className="text-2xl font-bold">Safe Cookie Editor</h1>
+        <h1 className="text-2xl font-bold">Cookie Editor - Cookie Manager</h1>
         <span className="text-sm text-gray-500 ml-2">V2.1.3</span>
       </span>
       <div className="flex " style={{ backgroundColor: "#FAF3E9" }}>

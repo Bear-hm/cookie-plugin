@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Safe Cookie Editor",
+  "name": "Cookie Editor - Cookie Manager",
   "version": "2.1.3",
   "description": "Simple tool to manage cookies! You can delete,  import,  export and edit cookies.",
   "offline_enabled": true,
